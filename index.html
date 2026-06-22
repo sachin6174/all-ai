@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OmniAI Chat</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Load Outfit font from Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Left Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-logo">
+          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+            <polyline points="2 17 12 22 22 17"></polyline>
+            <polyline points="2 12 17 22 12"></polyline>
+          </svg>
+        </div>
+        <span class="brand-name">OmniAI</span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <!-- Main Dashboard Tab -->
+        <button class="nav-item active" data-tab="dashboard">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="9"></rect>
+              <rect x="14" y="3" width="7" height="5"></rect>
+              <rect x="14" y="12" width="7" height="9"></rect>
+              <rect x="3" y="16" width="7" height="5"></rect>
+            </svg>
+          </span>
+          <span class="nav-label">Dashboard</span>
+        </button>
+
+        <div class="nav-divider">AI Chat Channels</div>
+
+        <!-- Gemini -->
+        <button class="nav-item" data-tab="gemini">
+          <span class="nav-icon gemini-color">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15 9 22 12 15 15 12 22 9 15 2 12 9 9"></polygon></svg>
+          </span>
+          <span class="nav-label">Gemini</span>
+          <span class="nav-status-dot active" id="dot-gemini"></span>
+        </button>
+
+        <!-- ChatGPT -->
+        <button class="nav-item" data-tab="chatgpt">
+          <span class="nav-icon chatgpt-color">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10zM2 12h20"></path></svg>
+          </span>
+          <span class="nav-label">ChatGPT</span>
+          <span class="nav-status-dot active" id="dot-chatgpt"></span>
+        </button>
+
+        <!-- Claude -->
+        <button class="nav-item" data-tab="claude">
+          <span class="nav-icon claude-color">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v12M6 12h12"></path></svg>
+          </span>
+          <span class="nav-label">Claude</span>
+          <span class="nav-status-dot active" id="dot-claude"></span>
+        </button>
+
+        <!-- Grok -->
+        <button class="nav-item" data-tab="grok">
+          <span class="nav-icon grok-color">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="4" y1="20" x2="20" y2="4"></line><line x1="14" y1="20" x2="20" y2="14"></line><line x1="4" y1="10" x2="10" y2="4"></line></svg>
+          </span>
+          <span class="nav-label">Grok</span>
+          <span class="nav-status-dot active" id="dot-grok"></span>
+        </button>
+
+        <!-- DeepSeek -->
+        <button class="nav-item" data-tab="deepseek">
+          <span class="nav-icon deepseek-color">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+          </span>
+          <span class="nav-label">DeepSeek</span>
+          <span class="nav-status-dot active" id="dot-deepseek"></span>
+        </button>
+
+        <!-- Qwen -->
+        <button class="nav-item" data-tab="qwen">
+          <span class="nav-icon qwen-color">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+          </span>
+          <span class="nav-label">Qwen</span>
+          <span class="nav-status-dot active" id="dot-qwen"></span>
+        </button>
+
+        <!-- Copilot -->
+        <button class="nav-item" data-tab="copilot">
+          <span class="nav-icon copilot-color">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="9" x2="15" y2="15"></line><line x1="15" y1="9" x2="9" y2="15"></line></svg>
+          </span>
+          <span class="nav-label">Copilot</span>
+          <span class="nav-status-dot active" id="dot-copilot"></span>
+        </button>
+
+        <!-- Perplexity -->
+        <button class="nav-item" data-tab="perplexity">
+          <span class="nav-icon perplexity-color">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+          </span>
+          <span class="nav-label">Perplexity</span>
+          <span class="nav-status-dot active" id="dot-perplexity"></span>
+        </button>
+
+        <!-- Le Chat -->
+        <button class="nav-item" data-tab="lechat">
+          <span class="nav-icon lechat-color">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+          </span>
+          <span class="nav-label">Le Chat</span>
+          <span class="nav-status-dot active" id="dot-lechat"></span>
+        </button>
+
+        <!-- Pi -->
+        <button class="nav-item" data-tab="pi">
+          <span class="nav-icon pi-color">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"></path></svg>
+          </span>
+          <span class="nav-label">Pi</span>
+          <span class="nav-status-dot active" id="dot-pi"></span>
+        </button>
+
+        <!-- You.com -->
+        <button class="nav-item" data-tab="you">
+          <span class="nav-icon you-color">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8A6 6 0 0 1 6 8M12 2v20"></path></svg>
+          </span>
+          <span class="nav-label">You.com</span>
+          <span class="nav-status-dot active" id="dot-you"></span>
+        </button>
+
+        <!-- Poe -->
+        <button class="nav-item" data-tab="poe">
+          <span class="nav-icon poe-color">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><circle cx="12" cy="12" r="4"></circle></svg>
+          </span>
+          <span class="nav-label">Poe</span>
+          <span class="nav-status-dot active" id="dot-poe"></span>
+        </button>
+
+        <!-- Character.AI -->
+        <button class="nav-item" data-tab="characterai">
+          <span class="nav-icon characterai-color">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          </span>
+          <span class="nav-label">Character.AI</span>
+          <span class="nav-status-dot active" id="dot-characterai"></span>
+        </button>
+
+        <!-- Meta AI -->
+        <button class="nav-item" data-tab="metaai">
+          <span class="nav-icon metaai-color">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h6a5 5 0 0 0 5-5V9a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v10"></path></svg>
+          </span>
+          <span class="nav-label">Meta AI</span>
+          <span class="nav-status-dot active" id="dot-metaai"></span>
+        </button>
+
+        <!-- Kimi -->
+        <button class="nav-item" data-tab="kimi">
+          <span class="nav-icon kimi-color">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+          </span>
+          <span class="nav-label">Kimi</span>
+          <span class="nav-status-dot active" id="dot-kimi"></span>
+        </button>
+
+        <!-- Jasper Chat -->
+        <button class="nav-item" data-tab="jasper">
+          <span class="nav-icon jasper-color">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+          </span>
+          <span class="nav-label">Jasper Chat</span>
+          <span class="nav-status-dot active" id="dot-jasper"></span>
+        </button>
+
+        <!-- Phind (New) -->
+        <button class="nav-item" data-tab="phind">
+          <span class="nav-icon phind-color">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+          </span>
+          <span class="nav-label">Phind</span>
+          <span class="nav-status-dot active" id="dot-phind"></span>
+        </button>
+
+        <!-- Hugging Chat (New) -->
+        <button class="nav-item" data-tab="huggingchat">
+          <span class="nav-icon huggingchat-color">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"></path></svg>
+          </span>
+          <span class="nav-label">Hugging Chat</span>
+          <span class="nav-status-dot active" id="dot-huggingchat"></span>
+        </button>
+
+        <!-- DuckDuckGo AI Chat (New) -->
+        <button class="nav-item" data-tab="duckchat">
+          <span class="nav-icon duckchat-color">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="M8 11s1.5-2 4-2 4 2 4 2"></path></svg>
+          </span>
+          <span class="nav-label">Duck AI Chat</span>
+          <span class="nav-status-dot active" id="dot-duckchat"></span>
+        </button>
+
+        <!-- Groq Chat -->
+        <button class="nav-item" data-tab="groq">
+          <span class="nav-icon groq-color">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10"></polygon></svg>
+          </span>
+          <span class="nav-label">Groq Chat</span>
+          <span class="nav-status-dot active" id="dot-groq"></span>
+        </button>
+
+        <!-- Blackbox AI -->
+        <button class="nav-item" data-tab="blackbox">
+          <span class="nav-icon blackbox-color">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><path d="M9 17l4-5-4-5"></path></svg>
+          </span>
+          <span class="nav-label">Blackbox AI</span>
+          <span class="nav-status-dot active" id="dot-blackbox"></span>
+        </button>
+
+        <!-- Cohere Coral -->
+        <button class="nav-item" data-tab="cohere">
+          <span class="nav-icon cohere-color">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
+          </span>
+          <span class="nav-label">Cohere Coral</span>
+          <span class="nav-status-dot active" id="dot-cohere"></span>
+        </button>
+
+        <!-- OpenRouter Chat -->
+        <button class="nav-item" data-tab="openrouter">
+          <span class="nav-icon openrouter-color">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0zM12 7a2 2 0 11-4 0 2 2 0 014 0z"></path><path d="M6.5 15.5l2.5-5.5M17.5 15.5l-5.5-5.5"></path></svg>
+          </span>
+          <span class="nav-label">OpenRouter Chat</span>
+          <span class="nav-status-dot active" id="dot-openrouter"></span>
+        </button>
+
+        <div class="nav-divider">Google Account</div>
+
+        <!-- Google Login Account Utility -->
+        <button class="nav-item" data-tab="google">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>
+              <path d="M12 11h9v2h-9z"></path>
+            </svg>
+          </span>
+          <span class="nav-label">Google Login</span>
+          <span class="nav-status-dot active" id="dot-google"></span>
+        </button>
+      </nav>
+
+      <!-- Sidebar Footer -->
+      <div class="sidebar-footer">
+        <button class="nav-item" data-tab="settings">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+          </span>
+          <span class="nav-label">Settings</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Workspace Content -->
+    <main class="main-workspace">
+      <!-- Webview Pool (Containers for active webviews, toggled based on layout & active tab) -->
+      <div id="webview-container" class="dashboard-grid layout-2x3">
+        <!-- Gemini Card -->
+        <div class="webview-card active" id="card-gemini" data-model="gemini">
+          <div class="card-header">
+            <div class="model-info"><span class="status-indicator ready"></span><span class="model-name">Gemini</span></div>
+            <div class="card-actions">
+              <button class="action-btn btn-back" title="Back"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+              <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+              <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
+              <button class="action-btn btn-focus" title="Focus Single Tab"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg></button>
+            </div>
+          </div>
+          <div class="webview-wrapper">
+            <webview id="wv-gemini" src="https://gemini.google.com/app" partition="persist:omniai_session"></webview>
+            <div class="loader-overlay"><div class="spinner"></div><span>Connecting to Gemini...</span></div>
+          </div>
+        </div>
+
+        <!-- ChatGPT Card -->
+        <div class="webview-card active" id="card-chatgpt" data-model="chatgpt">
+          <div class="card-header">
+            <div class="model-info"><span class="status-indicator ready"></span><span class="model-name">ChatGPT</span></div>
+            <div class="card-actions">
+              <button class="action-btn btn-back" title="Back"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+              <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+              <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
+              <button class="action-btn btn-focus" title="Focus Single Tab"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg></button>
+            </div>
+          </div>
+          <div class="webview-wrapper">
+            <webview id="wv-chatgpt" src="https://chatgpt.com/" partition="persist:omniai_session"></webview>
+            <div class="loader-overlay"><div class="spinner"></div><span>Connecting to ChatGPT...</span></div>
+          </div>
+        </div>
+
+        <!-- Claude Card -->
+        <div class="webview-card active" id="card-claude" data-model="claude">
+          <div class="card-header">
+            <div class="model-info"><span class="status-indicator ready"></span><span class="model-name">Claude</span></div>
+            <div class="card-actions">
+              <button class="action-btn btn-back" title="Back"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+              <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+              <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
+              <button class="action-btn btn-focus" title="Focus Single Tab"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg></button>
+            </div>
+          </div>
+          <div class="webview-wrapper">
+            <webview id="wv-claude" src="https://claude.ai/" partition="persist:omniai_session"></webview>
+            <div class="loader-overlay"><div class="spinner"></div><span>Connecting to Claude...</span></div>
+          </div>
+        </div>
+
+        <!-- Grok Card -->
+        <div class="webview-card active" id="card-grok" data-model="grok">
+          <div class="card-header">
+            <div class="model-info"><span class="status-indicator ready"></span><span class="model-name">Grok</span></div>
+            <div class="card-actions">
+              <button class="action-btn btn-back" title="Back"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+              <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+              <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
+              <button class="action-btn btn-focus" title="Focus Single Tab"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg></button>
+            </div>
+          </div>
+          <div class="webview-wrapper">
+            <webview id="wv-grok" src="https://grok.com/" partition="persist:omniai_session"></webview>
+            <div class="loader-overlay"><div class="spinner"></div><span>Connecting to Grok...</span></div>
+          </div>
+        </div>
+
+        <!-- DeepSeek Card -->
+        <div class="webview-card active" id="card-deepseek" data-model="deepseek">
+          <div class="card-header">
+            <div class="model-info"><span class="status-indicator ready"></span><span class="model-name">DeepSeek</span></div>
+            <div class="card-actions">
+              <button class="action-btn btn-back" title="Back"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+              <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+              <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
+              <button class="action-btn btn-focus" title="Focus Single Tab"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg></button>
+            </div>
+          </div>
+          <div class="webview-wrapper">
+            <webview id="wv-deepseek" src="https://chat.deepseek.com/" partition="persist:omniai_session"></webview>
+            <div class="loader-overlay"><div class="spinner"></div><span>Connecting to DeepSeek...</span></div>
+          </div>
+        </div>
+
+        <!-- Qwen Card -->
+        <div class="webview-card active" id="card-qwen" data-model="qwen">
+          <div class="card-header">
+            <div class="model-info"><span class="status-indicator ready"></span><span class="model-name">Qwen</span></div>
+            <div class="card-actions">
+              <button class="action-btn btn-back" title="Back"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+              <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+              <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
+              <button class="action-btn btn-focus" title="Focus Single Tab"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg></button>
+            </div>
+          </div>
+          <div class="webview-wrapper">
+            <webview id="wv-qwen" src="https://chat.qwenlm.ai/" partition="persist:omniai_session"></webview>
+            <div class="loader-overlay"><div class="spinner"></div><span>Connecting to Qwen...</span></div>
+          </div>
+        </div>
+
+        <!-- Copilot Card -->
+        <div class="webview-card active" id="card-copilot" data-model="copilot">
+          <div class="card-header">
+            <div class="model-info"><span class="status-indicator ready"></span><span class="model-name">Copilot</span></div>
+            <div class="card-actions">
+              <button class="action-btn btn-back" title="Back"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+              <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+              <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
+              <button class="action-btn btn-focus" title="Focus Single Tab"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg></button>
+            </div>
+          </div>
+          <div class="webview-wrapper">
+            <webview id="wv-copilot" src="https://copilot.microsoft.com/" partition="persist:omniai_session"></webview>
+            <div class="loader-overlay"><div class="spinner"></div><span>Connecting to Copilot...</span></div>
+          </div>
+        </div>
+
+        <!-- Perplexity Card -->
+        <div class="webview-card active" id="card-perplexity" data-model="perplexity">
+          <div class="card-header">
+            <div class="model-info"><span class="status-indicator ready"></span><span class="model-name">Perplexity</span></div>
+            <div class="card-actions">
+              <button class="action-btn btn-back" title="Back"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+              <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+              <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
+              <button class="action-btn btn-focus" title="Focus Single Tab"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg></button>
+            </div>
+          </div>
+          <div class="webview-wrapper">
+            <webview id="wv-perplexity" src="https://www.perplexity.ai/" partition="persist:omniai_session"></webview>
+            <div class="loader-overlay"><div class="spinner"></div><span>Connecting to Perplexity...</span></div>
+          </div>
+        </div>
+
+        <!-- Le Chat Card -->
+        <div class="webview-card active" id="card-lechat" data-model="lechat">
+          <div class="card-header">
+            <div class="model-info"><span class="status-indicator ready"></span><span class="model-name">Le Chat</span></div>
+            <div class="card-actions">
+              <button class="action-btn btn-back" title="Back"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+              <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+              <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
+              <button class="action-btn btn-focus" title="Focus Single Tab"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg></button>
+            </div>
+          </div>
+          <div class="webview-wrapper">
+            <webview id="wv-lechat" src="https://chat.mistral.ai/" partition="persist:omniai_session"></webview>
+            <div class="loader-overlay"><div class="spinner"></div><span>Connecting to Le Chat...</span></div>
+          </div>
+        </div>
+
+        <!-- Pi Card -->
+        <div class="webview-card active" id="card-pi" data-model="pi">
+          <div class="card-header">
+            <div class="model-info"><span class="status-indicator ready"></span><span class="model-name">Pi</span></div>
+            <div class="card-actions">
+              <button class="action-btn btn-back" title="Back"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+              <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+              <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
+              <button class="action-btn btn-focus" title="Focus Single Tab"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg></button>
+            </div>
+          </div>
+          <div class="webview-wrapper">
+            <webview id="wv-pi" src="https://pi.ai/" partition="persist:omniai_session"></webview>
+            <div class="loader-overlay"><div class="spinner"></div><span>Connecting to Pi...</span></div>
+          </div>
+        </div>
+
+        <!-- You.com Card -->
+        <div class="webview-card active" id="card-you" data-model="you">
+          <div class="card-header">
+            <div class="model-info"><span class="status-indicator ready"></span><span class="model-name">You.com</span></div>
+            <div class="card-actions">
+              <button class="action-btn btn-back" title="Back"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+              <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+              <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
+              <button class="action-btn btn-focus" title="Focus Single Tab"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg></button>
+            </div>
+          </div>
+          <div class="webview-wrapper">
+            <webview id="wv-you" src="https://you.com/" partition="persist:omniai_session"></webview>
+            <div class="loader-overlay"><div class="spinner"></div><span>Connecting to You.com...</span></div>
+          </div>
+        </div>
+
+        <!-- Poe Card -->
+        <div class="webview-card active" id="card-poe" data-model="poe">
+          <div class="card-header">
+            <div class="model-info"><span class="status-indicator ready"></span><span class="model-name">Poe</span></div>
+            <div class="card-actions">
+              <button class="action-btn btn-back" title="Back"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+              <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+              <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
+              <button class="action-btn btn-focus" title="Focus Single Tab"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg></button>
+            </div>
+          </div>
+          <div class="webview-wrapper">
+            <webview id="wv-poe" src="https://poe.com/" partition="persist:omniai_session"></webview>
+            <div class="loader-overlay"><div class="spinner"></div><span>Connecting to Poe...</span></div>
+          </div>
+        </div>
+
+        <!-- Character.AI Card -->
+        <div class="webview-card active" id="card-characterai" data-model="characterai">
+          <div class="card-header">
+            <div class="model-info"><span class="status-indicator ready"></span><span class="model-name">Character.AI</span></div>
+            <div class="card-actions">
+              <button class="action-btn btn-back" title="Back"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+              <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+              <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
+              <button class="action-btn btn-focus" title="Focus Single Tab"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg></button>
+            </div>
+          </div>
+          <div class="webview-wrapper">
+            <webview id="wv-characterai" src="https://character.ai/" partition="persist:omniai_session"></webview>
+            <div class="loader-overlay"><div class="spinner"></div><span>Connecting to Character.AI...</span></div>
+          </div>
+        </div>
+
+        <!-- Meta AI Card -->
+        <div class="webview-card active" id="card-metaai" data-model="metaai">
+          <div class="card-header">
+            <div class="model-info"><span class="status-indicator ready"></span><span class="model-name">Meta AI</span></div>
+            <div class="card-actions">
+              <button class="action-btn btn-back" title="Back"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+              <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+              <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
+              <button class="action-btn btn-focus" title="Focus Single Tab"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg></button>
+            </div>
+          </div>
+          <div class="webview-wrapper">
+            <webview id="wv-metaai" src="https://www.meta.ai/" partition="persist:omniai_session"></webview>
+            <div class="loader-overlay"><div class="spinner"></div><span>Connecting to Meta AI...</span></div>
+          </div>
+        </div>
+
+        <!-- Kimi Card -->
+        <div class="webview-card active" id="card-kimi" data-model="kimi">
+          <div class="card-header">
+            <div class="model-info"><span class="status-indicator ready"></span><span class="model-name">Kimi</span></div>
+            <div class="card-actions">
+              <button class="action-btn btn-back" title="Back"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+              <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+              <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
+              <button class="action-btn btn-focus" title="Focus Single Tab"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg></button>
+            </div>
+          </div>
+          <div class="webview-wrapper">
+            <webview id="wv-kimi" src="https://kimi.moonshot.cn/" partition="persist:omniai_session"></webview>
+            <div class="loader-overlay"><div class="spinner"></div><span>Connecting to Kimi...</span></div>
+          </div>
+        </div>
+
+        <!-- Jasper Card -->
+        <div class="webview-card active" id="card-jasper" data-model="jasper">
+          <div class="card-header">
+            <div class="model-info"><span class="status-indicator ready"></span><span class="model-name">Jasper Chat</span></div>
+            <div class="card-actions">
+              <button class="action-btn btn-back" title="Back"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+              <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+              <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
+              <button class="action-btn btn-focus" title="Focus Single Tab"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg></button>
+            </div>
+          </div>
+          <div class="webview-wrapper">
+            <webview id="wv-jasper" src="https://app.jasper.ai/" partition="persist:omniai_session"></webview>
+            <div class="loader-overlay"><div class="spinner"></div><span>Connecting to Jasper Chat...</span></div>
+          </div>
+        </div>
+
+        <!-- Phind Card -->
+        <div class="webview-card active" id="card-phind" data-model="phind">
+          <div class="card-header">
+            <div class="model-info"><span class="status-indicator ready"></span><span class="model-name">Phind</span></div>
+            <div class="card-actions">
+              <button class="action-btn btn-back" title="Back"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+              <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+              <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
+              <button class="action-btn btn-focus" title="Focus Single Tab"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg></button>
+            </div>
+          </div>
+          <div class="webview-wrapper">
+            <webview id="wv-phind" src="https://www.phind.com/" partition="persist:omniai_session"></webview>
+            <div class="loader-overlay"><div class="spinner"></div><span>Connecting to Phind...</span></div>
+          </div>
+        </div>
+
+        <!-- Hugging Chat Card -->
+        <div class="webview-card active" id="card-huggingchat" data-model="huggingchat">
+          <div class="card-header">
+            <div class="model-info"><span class="status-indicator ready"></span><span class="model-name">Hugging Chat</span></div>
+            <div class="card-actions">
+              <button class="action-btn btn-back" title="Back"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+              <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+              <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
+              <button class="action-btn btn-focus" title="Focus Single Tab"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg></button>
+            </div>
+          </div>
+          <div class="webview-wrapper">
+            <webview id="wv-huggingchat" src="https://huggingface.co/chat" partition="persist:omniai_session"></webview>
+            <div class="loader-overlay"><div class="spinner"></div><span>Connecting to Hugging Chat...</span></div>
+          </div>
+        </div>
+
+        <!-- DuckDuckGo AI Chat Card -->
+        <div class="webview-card active" id="card-duckchat" data-model="duckchat">
+          <div class="card-header">
+            <div class="model-info"><span class="status-indicator ready"></span><span class="model-name">Duck AI Chat</span></div>
+            <div class="card-actions">
+              <button class="action-btn btn-back" title="Back"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+              <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+              <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
+              <button class="action-btn btn-focus" title="Focus Single Tab"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg></button>
+            </div>
+          </div>
+          <div class="webview-wrapper">
+            <webview id="wv-duckchat" src="https://duckduckgo.com/chat" partition="persist:omniai_session"></webview>
+            <div class="loader-overlay"><div class="spinner"></div><span>Connecting to Duck AI Chat...</span></div>
+          </div>
+        </div>
+
+        <!-- Groq Chat Card -->
+        <div class="webview-card active" id="card-groq" data-model="groq">
+          <div class="card-header">
+            <div class="model-info"><span class="status-indicator ready"></span><span class="model-name">Groq Chat</span></div>
+            <div class="card-actions">
+              <button class="action-btn btn-back" title="Back"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+              <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+              <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
+              <button class="action-btn btn-focus" title="Focus Single Tab"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg></button>
+            </div>
+          </div>
+          <div class="webview-wrapper">
+            <webview id="wv-groq" src="https://chat.groq.com/" partition="persist:omniai_session"></webview>
+            <div class="loader-overlay"><div class="spinner"></div><span>Connecting to Groq Chat...</span></div>
+          </div>
+        </div>
+
+        <!-- Blackbox AI Card -->
+        <div class="webview-card active" id="card-blackbox" data-model="blackbox">
+          <div class="card-header">
+            <div class="model-info"><span class="status-indicator ready"></span><span class="model-name">Blackbox AI</span></div>
+            <div class="card-actions">
+              <button class="action-btn btn-back" title="Back"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+              <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+              <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
+              <button class="action-btn btn-focus" title="Focus Single Tab"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg></button>
+            </div>
+          </div>
+          <div class="webview-wrapper">
+            <webview id="wv-blackbox" src="https://www.blackbox.ai/" partition="persist:omniai_session"></webview>
+            <div class="loader-overlay"><div class="spinner"></div><span>Connecting to Blackbox AI...</span></div>
+          </div>
+        </div>
+
+        <!-- Cohere Coral Card -->
+        <div class="webview-card active" id="card-cohere" data-model="cohere">
+          <div class="card-header">
+            <div class="model-info"><span class="status-indicator ready"></span><span class="model-name">Cohere Coral</span></div>
+            <div class="card-actions">
+              <button class="action-btn btn-back" title="Back"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+              <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+              <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
+              <button class="action-btn btn-focus" title="Focus Single Tab"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg></button>
+            </div>
+          </div>
+          <div class="webview-wrapper">
+            <webview id="wv-cohere" src="https://coral.cohere.com/" partition="persist:omniai_session"></webview>
+            <div class="loader-overlay"><div class="spinner"></div><span>Connecting to Cohere Coral...</span></div>
+          </div>
+        </div>
+
+        <!-- OpenRouter Chat Card -->
+        <div class="webview-card active" id="card-openrouter" data-model="openrouter">
+          <div class="card-header">
+            <div class="model-info"><span class="status-indicator ready"></span><span class="model-name">OpenRouter Chat</span></div>
+            <div class="card-actions">
+              <button class="action-btn btn-back" title="Back"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+              <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+              <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
+              <button class="action-btn btn-focus" title="Focus Single Tab"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg></button>
+            </div>
+          </div>
+          <div class="webview-wrapper">
+            <webview id="wv-openrouter" src="https://openrouter.ai/chat" partition="persist:omniai_session"></webview>
+            <div class="loader-overlay"><div class="spinner"></div><span>Connecting to OpenRouter Chat...</span></div>
+          </div>
+        </div>
+
+        <!-- Google Login Account Card (Utility, hidden from dashboard grid) -->
+        <div class="webview-card card-utility" id="card-google" data-model="google">
+          <div class="card-header">
+            <div class="model-info"><span class="status-indicator ready"></span><span class="model-name">Google Account Login</span></div>
+            <div class="card-actions">
+              <button class="action-btn btn-back" title="Back"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+              <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+              <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
+            </div>
+          </div>
+          <div class="webview-wrapper">
+            <webview id="wv-google" src="https://accounts.google.com/" partition="persist:omniai_session"></webview>
+            <div class="loader-overlay"><div class="spinner"></div><span>Connecting to Google Account Sign-In...</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings Pane -->
+      <div id="settings-pane" class="settings-container hidden">
+        <h1 class="settings-title">Application Settings</h1>
+        
+        <div class="settings-section">
+          <h2>Dashboard Layout</h2>
+          <p class="section-desc">Select how multiple AI panels are arranged in the Dashboard workspace.</p>
+          <div class="layout-options">
+            <button class="layout-btn active" data-layout="2x3">
+              <span class="layout-preview grid-2x3"></span>
+              <span class="layout-label">Default Grid (2x3)</span>
+            </button>
+            <button class="layout-btn" data-layout="2x2">
+              <span class="layout-preview grid-2x2"></span>
+              <span class="layout-label">Quad Grid (2x2)</span>
+            </button>
+            <button class="layout-btn" data-layout="col-3">
+              <span class="layout-preview cols-3"></span>
+              <span class="layout-label">3 Columns</span>
+            </button>
+            <button class="layout-btn" data-layout="col-2">
+              <span class="layout-preview cols-2"></span>
+              <span class="layout-label">2 Columns</span>
+            </button>
+            <button class="layout-btn" data-layout="col-1">
+              <span class="layout-preview cols-1"></span>
+              <span class="layout-label">Single Stack</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h2>Gemini Google Account</h2>
+          <p class="section-desc">Select which signed-in Google account to use for Google Gemini.</p>
+          <select id="select-gemini-authuser" class="settings-select">
+            <option value="0">Account 1 (Default / Primary)</option>
+            <option value="1">Account 2</option>
+            <option value="2">Account 3</option>
+            <option value="3">Account 4</option>
+          </select>
+        </div>
+
+        <div class="settings-section">
+          <h2>Theme Accent Color</h2>
+          <p class="section-desc">Customize the color accents, glows, and highlights throughout the workspace.</p>
+          <div class="theme-accent-options">
+            <button class="accent-color-btn active" data-accent="#5b5df8" data-glow="rgba(91, 93, 248, 0.35)" style="background-color: #5b5df8" title="Royal Violet"></button>
+            <button class="accent-color-btn" data-accent="#00f0ff" data-glow="rgba(0, 240, 255, 0.35)" style="background-color: #00f0ff" title="Cyber Cyan"></button>
+            <button class="accent-color-btn" data-accent="#10b981" data-glow="rgba(16, 185, 129, 0.35)" style="background-color: #10b981" title="Emerald Mint"></button>
+            <button class="accent-color-btn" data-accent="#f43f5e" data-glow="rgba(244, 63, 94, 0.35)" style="background-color: #f43f5e" title="Sunset Pink"></button>
+            <button class="accent-color-btn" data-accent="#f59e0b" data-glow="rgba(245, 158, 11, 0.35)" style="background-color: #f59e0b" title="Amber Gold"></button>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h2>Enabled AI Services</h2>
+          <p class="section-desc">Choose which models are active in the dashboard and broadcast stream.</p>
+          <div class="service-toggles">
+            <!-- Row 1 -->
+            <label class="toggle-control"><input type="checkbox" id="toggle-gemini" checked><span class="toggle-label">Google Gemini</span></label>
+            <label class="toggle-control"><input type="checkbox" id="toggle-chatgpt" checked><span class="toggle-label">OpenAI ChatGPT</span></label>
+            <label class="toggle-control"><input type="checkbox" id="toggle-claude" checked><span class="toggle-label">Anthropic Claude</span></label>
+            <label class="toggle-control"><input type="checkbox" id="toggle-grok" checked><span class="toggle-label">xAI Grok</span></label>
+            <label class="toggle-control"><input type="checkbox" id="toggle-deepseek" checked><span class="toggle-label">DeepSeek Chat</span></label>
+            <label class="toggle-control"><input type="checkbox" id="toggle-qwen" checked><span class="toggle-label">Alibaba Qwen</span></label>
+            <!-- Row 2 -->
+            <label class="toggle-control"><input type="checkbox" id="toggle-copilot" checked><span class="toggle-label">Microsoft Copilot</span></label>
+            <label class="toggle-control"><input type="checkbox" id="toggle-perplexity" checked><span class="toggle-label">Perplexity AI</span></label>
+            <label class="toggle-control"><input type="checkbox" id="toggle-lechat" checked><span class="toggle-label">Mistral Le Chat</span></label>
+            <label class="toggle-control"><input type="checkbox" id="toggle-pi" checked><span class="toggle-label">Inflection Pi</span></label>
+            <label class="toggle-control"><input type="checkbox" id="toggle-you" checked><span class="toggle-label">You.com</span></label>
+            <label class="toggle-control"><input type="checkbox" id="toggle-poe" checked><span class="toggle-label">Quora Poe</span></label>
+            <label class="toggle-control"><input type="checkbox" id="toggle-characterai" checked><span class="toggle-label">Character.AI</span></label>
+            <label class="toggle-control"><input type="checkbox" id="toggle-metaai" checked><span class="toggle-label">Meta AI</span></label>
+            <label class="toggle-control"><input type="checkbox" id="toggle-kimi" checked><span class="toggle-label">Kimi Chat</span></label>
+            <label class="toggle-control"><input type="checkbox" id="toggle-jasper" checked><span class="toggle-label">Jasper Chat</span></label>
+            <!-- Row 3 (New) -->
+            <label class="toggle-control"><input type="checkbox" id="toggle-phind" checked><span class="toggle-label">Phind Developer</span></label>
+            <label class="toggle-control"><input type="checkbox" id="toggle-huggingchat" checked><span class="toggle-label">Hugging Chat</span></label>
+            <label class="toggle-control"><input type="checkbox" id="toggle-duckchat" checked><span class="toggle-label">Duck AI Chat</span></label>
+            <!-- Row 4 (Phase 2) -->
+            <label class="toggle-control"><input type="checkbox" id="toggle-groq" checked><span class="toggle-label">Groq Chat</span></label>
+            <label class="toggle-control"><input type="checkbox" id="toggle-blackbox" checked><span class="toggle-label">Blackbox AI</span></label>
+            <label class="toggle-control"><input type="checkbox" id="toggle-cohere" checked><span class="toggle-label">Cohere Coral</span></label>
+            <label class="toggle-control"><input type="checkbox" id="toggle-openrouter" checked><span class="toggle-label">OpenRouter Chat</span></label>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h2>Session Management</h2>
+          <p class="section-desc">Clear local cookies, storage, and logins for individual services.</p>
+          <div class="session-management-actions">
+            <div class="session-row"><span>Google Account Session (Shared)</span><button class="btn btn-danger" data-clear="google" data-origin="https://accounts.google.com">Reset Google Login</button></div>
+            <div class="session-row"><span>Google Gemini Session</span><button class="btn btn-danger" data-clear="gemini" data-origin="https://gemini.google.com">Reset Gemini</button></div>
+            <div class="session-row"><span>OpenAI ChatGPT Session</span><button class="btn btn-danger" data-clear="chatgpt" data-origin="https://chatgpt.com">Reset ChatGPT</button></div>
+            <div class="session-row"><span>Anthropic Claude Session</span><button class="btn btn-danger" data-clear="claude" data-origin="https://claude.ai">Reset Claude</button></div>
+            <div class="session-row"><span>xAI Grok Session</span><button class="btn btn-danger" data-clear="grok" data-origin="https://grok.com">Reset Grok</button></div>
+            <div class="session-row"><span>DeepSeek Chat Session</span><button class="btn btn-danger" data-clear="deepseek" data-origin="https://chat.deepseek.com">Reset DeepSeek</button></div>
+            <div class="session-row"><span>Alibaba Qwen Session</span><button class="btn btn-danger" data-clear="qwen" data-origin="https://chat.qwenlm.ai">Reset Qwen</button></div>
+            
+            <!-- Resets Row 2 -->
+            <div class="session-row"><span>Microsoft Copilot Session</span><button class="btn btn-danger" data-clear="copilot" data-origin="https://copilot.microsoft.com">Reset Copilot</button></div>
+            <div class="session-row"><span>Perplexity AI Session</span><button class="btn btn-danger" data-clear="perplexity" data-origin="https://www.perplexity.ai">Reset Perplexity</button></div>
+            <div class="session-row"><span>Mistral Le Chat Session</span><button class="btn btn-danger" data-clear="lechat" data-origin="https://chat.mistral.ai">Reset Le Chat</button></div>
+            <div class="session-row"><span>Inflection Pi Session</span><button class="btn btn-danger" data-clear="pi" data-origin="https://pi.ai">Reset Pi</button></div>
+            <div class="session-row"><span>You.com Session</span><button class="btn btn-danger" data-clear="you" data-origin="https://you.com">Reset You.com</button></div>
+            <div class="session-row"><span>Quora Poe Session</span><button class="btn btn-danger" data-clear="poe" data-origin="https://poe.com">Reset Poe</button></div>
+            <div class="session-row"><span>Character.AI Session</span><button class="btn btn-danger" data-clear="characterai" data-origin="https://character.ai">Reset Character.AI</button></div>
+            <div class="session-row"><span>Meta AI Session</span><button class="btn btn-danger" data-clear="metaai" data-origin="https://www.meta.ai">Reset Meta AI</button></div>
+            <div class="session-row"><span>Kimi Chat Session</span><button class="btn btn-danger" data-clear="kimi" data-origin="https://kimi.moonshot.cn">Reset Kimi</button></div>
+            <div class="session-row"><span>Jasper Chat Session</span><button class="btn btn-danger" data-clear="jasper" data-origin="https://app.jasper.ai">Reset Jasper</button></div>
+
+            <!-- Resets Row 3 (New) -->
+            <div class="session-row"><span>Phind Developer Session</span><button class="btn btn-danger" data-clear="phind" data-origin="https://www.phind.com">Reset Phind</button></div>
+            <div class="session-row"><span>Hugging Chat Session</span><button class="btn btn-danger" data-clear="huggingchat" data-origin="https://huggingface.co/chat">Reset Hugging Chat</button></div>
+            <div class="session-row"><span>Duck AI Chat Session</span><button class="btn btn-danger" data-clear="duckchat" data-origin="https://duckduckgo.com/chat">Reset Duck Chat</button></div>
+            <div class="session-row"><span>Groq Chat Session</span><button class="btn btn-danger" data-clear="groq" data-origin="https://chat.groq.com">Reset Groq</button></div>
+            <div class="session-row"><span>Blackbox AI Session</span><button class="btn btn-danger" data-clear="blackbox" data-origin="https://www.blackbox.ai">Reset Blackbox</button></div>
+            <div class="session-row"><span>Cohere Coral Session</span><button class="btn btn-danger" data-clear="cohere" data-origin="https://coral.cohere.com">Reset Cohere</button></div>
+            <div class="session-row"><span>OpenRouter Chat Session</span><button class="btn btn-danger" data-clear="openrouter" data-origin="https://openrouter.ai">Reset OpenRouter</button></div>
+
+
+            <div class="session-row" style="margin-top:12px; border-color: rgba(239, 68, 68, 0.4)">
+              <span>Entire Application Workspace Cache</span>
+              <button class="btn btn-danger" style="background-color: var(--danger-color); color: #fff" data-clear="all">Reset All Sessions</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h2>Help &amp; Info</h2>
+          <div class="info-card">
+            <p><strong>OmniAI Chat Client v1.0.0</strong></p>
+            <p>We use a unified shared cookie partition. This means if you log in once using the <strong>Google Login</strong> tab, your account credentials are automatically shared with supported portals for single-sign-on.</p>
+            <p>Press <code>Ctrl + Enter</code> to run the global broadcast prompt across all active AI models.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Global Broadcast Bar -->
+      <div id="broadcast-panel" class="broadcast-bar-container">
+        <!-- Quick Action Prompt Templates -->
+        <div class="broadcast-quick-actions">
+          <span class="action-pill" data-template="Review this code for bugs, logic errors, and performance improvements:\n\n">⚡ Code Review</span>
+          <span class="action-pill" data-template="Summarize the following text in bullet points with key takeaways:\n\n">📝 Summarize</span>
+          <span class="action-pill" data-template="Explain this concept like I am a 5-year-old child with simple analogies:\n\n">💡 ELI5</span>
+          <span class="action-pill" data-template="Find any potential edge cases, security flaws, or bugs in this code:\n\n">🔍 Bug Finder</span>
+          <span class="action-pill" data-template="Translate this text to Spanish, French, Japanese, and Hindi:\n\n">🌐 Translate</span>
+        </div>
+
+        <div class="broadcast-inner">
+          <div class="broadcast-textarea-wrapper">
+            <textarea id="broadcast-input" placeholder="Enter prompt to execute across all active AIs... (Ctrl+Enter to send)"></textarea>
+          </div>
+          <div class="broadcast-controls">
+            <div class="active-indicators-tray" id="active-indicators-tray" title="Active receivers for broadcast">
+              <span class="tray-badge" data-indicator="gemini">Gemini</span>
+              <span class="tray-badge" data-indicator="chatgpt">ChatGPT</span>
+              <span class="tray-badge" data-indicator="claude">Claude</span>
+              <span class="tray-badge" data-indicator="grok">Grok</span>
+              <span class="tray-badge" data-indicator="deepseek">DeepSeek</span>
+              <span class="tray-badge" data-indicator="qwen">Qwen</span>
+              <span class="tray-badge" data-indicator="copilot">Copilot</span>
+              <span class="tray-badge" data-indicator="perplexity">Perplexity</span>
+              <span class="tray-badge" data-indicator="lechat">Le Chat</span>
+              <span class="tray-badge" data-indicator="pi">Pi</span>
+              <span class="tray-badge" data-indicator="you">You</span>
+              <span class="tray-badge" data-indicator="poe">Poe</span>
+              <span class="tray-badge" data-indicator="characterai">C.AI</span>
+              <span class="tray-badge" data-indicator="metaai">Meta</span>
+              <span class="tray-badge" data-indicator="kimi">Kimi</span>
+              <span class="tray-badge" data-indicator="jasper">Jasper</span>
+              <span class="tray-badge" data-indicator="phind">Phind</span>
+              <span class="tray-badge" data-indicator="huggingchat">Hugging</span>
+              <span class="tray-badge" data-indicator="duckchat">Duck</span>
+              <span class="tray-badge" data-indicator="groq">Groq</span>
+              <span class="tray-badge" data-indicator="blackbox">B.Box</span>
+              <span class="tray-badge" data-indicator="cohere">Cohere</span>
+              <span class="tray-badge" data-indicator="openrouter">O.Router</span>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <button id="broadcast-history-btn" class="action-btn" style="border: 1px solid var(--border-color);" title="Toggle Prompt History">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+              </button>
+              <button id="broadcast-send-btn" class="broadcast-btn" title="Broadcast prompt (Ctrl+Enter)">
+                <span>Broadcast</span>
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <line x1="22" y1="2" x2="11" y2="13"></line>
+                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="broadcast-status-message" id="broadcast-status">Ready to broadcast</div>
+      </div>
+
+      <!-- Sliding History Drawer -->
+      <div id="history-drawer" class="history-drawer hidden">
+        <div class="history-header">
+          <h3>Broadcast Prompt History</h3>
+          <button id="close-history-btn" class="action-btn" title="Close Drawer" style="font-size: 20px; font-weight: 700; opacity: 0.7;">&times;</button>
+        </div>
+        <div class="history-drawer-content">
+          <div id="history-items-container" class="history-list"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

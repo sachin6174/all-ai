@@ -1,0 +1,41 @@
+{
+  "name": "omni-ai-chat",
+  "version": "1.0.0",
+  "description": "Multi-platform desktop client integrating multiple AI chats with global broadcast.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder"
+  },
+  "devDependencies": {
+    "electron": "^31.1.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.omniaichat.app",
+    "productName": "OmniAIChat",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "mac": {
+      "target": [
+        "dmg",
+        "pkg"
+      ]
+    },
+    "files": [
+      "main.js",
+      "index.html",
+      "style.css",
+      "renderer.js",
+      "injection-script.js",
+      "package.json"
+    ]
+  }
+}
