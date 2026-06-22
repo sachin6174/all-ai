@@ -344,12 +344,7 @@ function setupWebviewEvents() {
       }
     });
 
-    // Handle new-window events (Google profile choosers, OAuth redirects, target="_blank")
-    webview.addEventListener('new-window', (e) => {
-      e.preventDefault();
-      webview.src = e.url;
-      console.log(`Bypassed webview new-window event for ${model}: loading ${e.url} inside same webview.`);
-    });
+    // (The new-window event listener was removed so 'allowpopups' works natively)
 
     // Card Header Controls Setup
     const btnBack = card.querySelector('.btn-back');
@@ -672,6 +667,12 @@ function setupListeners() {
       } else if (e.key.toLowerCase() === 's') {
         e.preventDefault();
         switchTab('settings');
+      } else if (e.key.toLowerCase() === 'b') {
+        e.preventDefault();
+        toggleSidebar();
+      } else if (e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        openCmdPalette();
       } else if (e.key >= '1' && e.key <= '9') {
         e.preventDefault();
         const index = parseInt(e.key) - 1;
@@ -696,4 +697,311 @@ window.addEventListener('DOMContentLoaded', () => {
   initUI();
   setupWebviewEvents();
   setupListeners();
+  initSidebarCollapse();
+  initSidebarSearch();
+  initCmdPalette();
+  initTemplates();
+  initZoomControls();
+  initAlwaysOnTop();
+  initBroadcastEnhancements();
 });
+
+
+/* =================================================================
+   FEATURE: Sidebar Collapse
+================================================================= */
+let sidebarCollapsed = JSON.parse(localStorage.getItem('omniai_sidebar_collapsed') || 'false');
+const sidebar = document.querySelector('.sidebar');
+
+function toggleSidebar() {
+  sidebarCollapsed = !sidebarCollapsed;
+  sidebar.classList.toggle('collapsed', sidebarCollapsed);
+  localStorage.setItem('omniai_sidebar_collapsed', JSON.stringify(sidebarCollapsed));
+}
+
+function initSidebarCollapse() {
+  if (sidebarCollapsed) sidebar.classList.add('collapsed');
+  document.getElementById('sidebar-collapse-btn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleSidebar();
+  });
+}
+
+
+/* =================================================================
+   FEATURE: Sidebar Search Filter
+================================================================= */
+function initSidebarSearch() {
+  const searchInput = document.getElementById('sidebar-search');
+  if (!searchInput) return;
+  searchInput.addEventListener('input', () => {
+    const q = searchInput.value.toLowerCase().trim();
+    document.querySelectorAll('.sidebar-nav .nav-item[data-tab]').forEach(item => {
+      const tab = item.getAttribute('data-tab');
+      if (tab === 'dashboard' || tab === 'settings') return;
+      const label = item.querySelector('.nav-label');
+      if (!label) return;
+      const match = !q || label.textContent.toLowerCase().includes(q);
+      item.style.display = match ? '' : 'none';
+    });
+  });
+}
+
+
+/* =================================================================
+   FEATURE: Command Palette
+================================================================= */
+const CMD_ITEMS = [
+  { label: 'Dashboard',        badge: 'Ctrl+D', icon: '⊞', action: () => switchTab('dashboard') },
+  { label: 'Settings',         badge: 'Ctrl+S', icon: '⚙',  action: () => switchTab('settings') },
+  { label: 'Toggle Sidebar',   badge: 'Ctrl+B', icon: '◧',  action: () => toggleSidebar() },
+  { label: 'Always on Top',    badge: '',       icon: '📌',  action: () => toggleAlwaysOnTop() },
+  { label: 'Open Templates',   badge: '',       icon: '📄',  action: () => openTemplatesModal() },
+  { label: 'Broadcast',        badge: 'Ctrl+↵', icon: '📡',  action: () => document.getElementById('broadcast-send-btn').click() },
+  ...['gemini','chatgpt','claude','grok','deepseek','qwen','copilot','perplexity',
+      'lechat','pi','you','poe','characterai','metaai','kimi','jasper',
+      'phind','huggingchat','duckchat','groq','blackbox','cohere','openrouter'].map((id, i) => ({
+    label: (document.querySelector(`.nav-item[data-tab="${id}"] .nav-label`)?.textContent || id),
+    badge: i < 9 ? `Ctrl+${i+1}` : '',
+    icon: '🤖',
+    action: () => switchTab(id)
+  }))
+];
+
+let cmdHighlightIndex = 0;
+let currentCmdItems = [];
+
+function openCmdPalette() {
+  const overlay = document.getElementById('cmd-palette-overlay');
+  overlay.classList.remove('hidden');
+  const input = document.getElementById('cmd-search-input');
+  input.value = '';
+  renderCmdResults('');
+  setTimeout(() => input.focus(), 50);
+}
+
+function closeCmdPalette() {
+  document.getElementById('cmd-palette-overlay').classList.add('hidden');
+}
+
+function renderCmdResults(query) {
+  const q = query.toLowerCase();
+  currentCmdItems = q ? CMD_ITEMS.filter(i => i.label.toLowerCase().includes(q)) : CMD_ITEMS;
+  cmdHighlightIndex = 0;
+  const container = document.getElementById('cmd-results');
+  container.innerHTML = '';
+  currentCmdItems.forEach((item, idx) => {
+    const el = document.createElement('div');
+    el.className = 'cmd-item' + (idx === 0 ? ' highlighted' : '');
+    el.innerHTML = `<span>${item.icon}</span><span>${item.label}</span>${item.badge ? `<span class="cmd-item-badge">${item.badge}</span>` : ''}`;
+    el.addEventListener('click', () => { item.action(); closeCmdPalette(); });
+    container.appendChild(el);
+  });
+}
+
+function initCmdPalette() {
+  const overlay = document.getElementById('cmd-palette-overlay');
+  const input = document.getElementById('cmd-search-input');
+
+  document.getElementById('cmd-palette-btn').addEventListener('click', openCmdPalette);
+
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeCmdPalette(); });
+
+  input.addEventListener('input', () => renderCmdResults(input.value));
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { closeCmdPalette(); return; }
+    const items = document.querySelectorAll('.cmd-item');
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      items[cmdHighlightIndex]?.classList.remove('highlighted');
+      cmdHighlightIndex = (cmdHighlightIndex + 1) % items.length;
+      items[cmdHighlightIndex]?.classList.add('highlighted');
+      items[cmdHighlightIndex]?.scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      items[cmdHighlightIndex]?.classList.remove('highlighted');
+      cmdHighlightIndex = (cmdHighlightIndex - 1 + items.length) % items.length;
+      items[cmdHighlightIndex]?.classList.add('highlighted');
+      items[cmdHighlightIndex]?.scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (currentCmdItems[cmdHighlightIndex]) {
+        currentCmdItems[cmdHighlightIndex].action();
+        closeCmdPalette();
+      }
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      if (overlay.classList.contains('hidden')) openCmdPalette();
+      else closeCmdPalette();
+    }
+    if (e.key === 'Escape' && !overlay.classList.contains('hidden')) closeCmdPalette();
+  });
+}
+
+
+/* =================================================================
+   FEATURE: Prompt Templates
+================================================================= */
+let promptTemplates = JSON.parse(localStorage.getItem('omniai_templates') || '[]');
+
+function saveTemplates() {
+  localStorage.setItem('omniai_templates', JSON.stringify(promptTemplates));
+}
+
+function openTemplatesModal() {
+  renderTemplatesList();
+  document.getElementById('templates-overlay').classList.remove('hidden');
+}
+
+function closeTemplatesModal() {
+  document.getElementById('templates-overlay').classList.add('hidden');
+}
+
+function renderTemplatesList() {
+  const list = document.getElementById('templates-list');
+  list.innerHTML = '';
+  if (promptTemplates.length === 0) {
+    list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-dark);font-size:12px;">No templates yet. Add one above!</div>';
+    return;
+  }
+  promptTemplates.forEach((tpl, idx) => {
+    const el = document.createElement('div');
+    el.className = 'template-item';
+    el.innerHTML = `
+      <span class="template-item-name" title="${tpl.name}">${tpl.name}</span>
+      <span class="template-item-preview" title="${tpl.body}">${tpl.body}</span>
+      <button class="template-item-delete" title="Delete">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="3 6 5 6 21 6"></polyline>
+          <path d="M19 6l-1 14H6L5 6"></path>
+          <path d="M10 11v6M14 11v6"></path>
+        </svg>
+      </button>`;
+    el.querySelector('.template-item-delete').addEventListener('click', (e) => {
+      e.stopPropagation();
+      promptTemplates.splice(idx, 1);
+      saveTemplates();
+      renderTemplatesList();
+    });
+    el.addEventListener('click', (e) => {
+      if (e.target.closest('.template-item-delete')) return;
+      const input = document.getElementById('broadcast-input');
+      input.value = tpl.body;
+      input.dispatchEvent(new Event('input'));
+      closeTemplatesModal();
+    });
+    list.appendChild(el);
+  });
+}
+
+function initTemplates() {
+  document.getElementById('templates-open-btn').addEventListener('click', openTemplatesModal);
+  document.getElementById('templates-close-btn').addEventListener('click', closeTemplatesModal);
+  document.getElementById('templates-overlay').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('templates-overlay')) closeTemplatesModal();
+  });
+  document.getElementById('template-save-btn').addEventListener('click', () => {
+    const name = document.getElementById('template-name-input').value.trim();
+    const body = document.getElementById('template-body-input').value.trim();
+    if (!name || !body) { return; }
+    promptTemplates.unshift({ name, body });
+    saveTemplates();
+    document.getElementById('template-name-input').value = '';
+    document.getElementById('template-body-input').value = '';
+    renderTemplatesList();
+  });
+}
+
+
+/* =================================================================
+   FEATURE: Per-Webview Zoom Controls
+================================================================= */
+const webviewZoomLevels = {};
+
+function initZoomControls() {
+  document.querySelectorAll('.webview-card').forEach(card => {
+    const wv = card.querySelector('webview');
+    if (!wv) return;
+    const wvId = wv.id;
+    webviewZoomLevels[wvId] = 1.0;
+
+    card.querySelector('.btn-zoom-in')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      webviewZoomLevels[wvId] = Math.min(3.0, (webviewZoomLevels[wvId] || 1.0) + 0.1);
+      wv.setZoomFactor(webviewZoomLevels[wvId]);
+    });
+
+    card.querySelector('.btn-zoom-out')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      webviewZoomLevels[wvId] = Math.max(0.3, (webviewZoomLevels[wvId] || 1.0) - 0.1);
+      wv.setZoomFactor(webviewZoomLevels[wvId]);
+    });
+  });
+}
+
+
+/* =================================================================
+   FEATURE: Always On Top
+================================================================= */
+let isAlwaysOnTop = false;
+
+async function toggleAlwaysOnTop() {
+  isAlwaysOnTop = !isAlwaysOnTop;
+  await ipcRenderer.invoke('set-always-on-top', isAlwaysOnTop);
+  const btn = document.getElementById('always-on-top-btn');
+  btn.classList.toggle('active', isAlwaysOnTop);
+  btn.title = isAlwaysOnTop ? 'Always on Top (ON)' : 'Always on Top';
+}
+
+function initAlwaysOnTop() {
+  document.getElementById('always-on-top-btn').addEventListener('click', toggleAlwaysOnTop);
+}
+
+
+/* =================================================================
+   FEATURE: Broadcast Sound + Flash Notification
+================================================================= */
+function playBroadcastDoneSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const times = [0, 0.12, 0.24];
+    const freqs = [523, 659, 784]; // C5, E5, G5 major chord arpeggio
+    times.forEach((t, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.value = freqs[i];
+      osc.type = 'sine';
+      gain.gain.setValueAtTime(0.18, ctx.currentTime + t);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.25);
+      osc.start(ctx.currentTime + t);
+      osc.stop(ctx.currentTime + t + 0.3);
+    });
+  } catch (e) { /* audio not available */ }
+}
+
+function initBroadcastEnhancements() {
+  // Observe broadcast status changes to trigger sound + flash
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach(m => {
+      if (m.type === 'characterData' || m.type === 'childList') {
+        const text = broadcastStatus.textContent || '';
+        if (text.toLowerCase().includes('done') || text.toLowerCase().includes('complete') || text.toLowerCase().includes('sent')) {
+          playBroadcastDoneSound();
+          const panel = document.getElementById('broadcast-panel');
+          panel.classList.add('flash');
+          setTimeout(() => panel.classList.remove('flash'), 800);
+        }
+      }
+    });
+  });
+  if (broadcastStatus) {
+    observer.observe(broadcastStatus, { characterData: true, childList: true, subtree: true });
+  }
+}

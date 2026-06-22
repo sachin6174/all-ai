@@ -3,8 +3,8 @@ const path = require('path');
 
 let mainWindow;
 
-// Modern Firefox User Agent to bypass Google's "secure browser" restriction on Electron webviews
-const MODERN_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:127.0) Gecko/20100101 Firefox/127.0';
+// Standard Chrome User Agent to bypass Google's "secure browser" restriction
+const MODERN_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36';
 const SHARED_PARTITION = 'persist:omniai_session';
 
 function configureSessions() {
@@ -13,9 +13,14 @@ function configureSessions() {
   // Set custom user agent globally on the session
   ses.setUserAgent(MODERN_USER_AGENT);
 
-  // Modify headers if needed or handle web requests
+  // Modify headers to remove Electron/Chromium specific hints
   ses.webRequest.onBeforeSendHeaders((details, callback) => {
     details.requestHeaders['User-Agent'] = MODERN_USER_AGENT;
+    // Delete headers that might reveal this is an embedded/Electron browser
+    delete details.requestHeaders['sec-ch-ua'];
+    delete details.requestHeaders['sec-ch-ua-mobile'];
+    delete details.requestHeaders['sec-ch-ua-platform'];
+    
     callback({ cancel: false, requestHeaders: details.requestHeaders });
   });
 }
@@ -39,8 +44,24 @@ function createWindow() {
 
   mainWindow.loadFile('index.html');
 
-  // Open links with target="_blank" in the default OS browser instead of inside the app main view
+  // Handle window creation (popups) to ensure they are secure enough for Google OAuth
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    // If it's a Google Auth URL, allow it but strip Node integration so Google doesn't detect Electron
+    if (url.includes('accounts.google.com') || url.includes('oauth') || url.includes('signin')) {
+      return {
+        action: 'allow',
+        overrideBrowserWindowOptions: {
+          webPreferences: {
+            nodeIntegration: false,
+            contextIsolation: true,
+            sandbox: true,
+            userAgent: MODERN_USER_AGENT
+          }
+        }
+      };
+    }
+    
+    // For normal external links, open in the user's default OS browser
     shell.openExternal(url);
     return { action: 'deny' };
   });
@@ -55,6 +76,17 @@ function createWindow() {
 app.whenReady().then(() => {
   configureSessions();
   createWindow();
+
+  // Enforce custom user agent on ANY new window/webContents created (including allowpopups from webviews)
+  app.on('web-contents-created', (event, contents) => {
+    contents.on('will-attach-webview', (e, webPreferences, params) => {
+      // Ensure webviews themselves inherit the spoofed agent if not already
+      webPreferences.userAgent = MODERN_USER_AGENT;
+    });
+    
+    // Set the user agent for the new webContents itself (this covers popup windows)
+    contents.userAgent = MODERN_USER_AGENT;
+  });
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -85,4 +117,21 @@ ipcMain.handle('clear-session', async (event, { partition, origin }) => {
     console.error(`Failed to clear session data:`, error);
     return { success: false, error: error.message };
   }
+});
+
+// IPC Handler to toggle always-on-top
+ipcMain.handle('set-always-on-top', async (event, value) => {
+  if (mainWindow) {
+    mainWindow.setAlwaysOnTop(value);
+    return { success: true, alwaysOnTop: value };
+  }
+  return { success: false };
+});
+
+// IPC Handler to get always-on-top state
+ipcMain.handle('get-always-on-top', async () => {
+  if (mainWindow) {
+    return { alwaysOnTop: mainWindow.isAlwaysOnTop() };
+  }
+  return { alwaysOnTop: false };
 });

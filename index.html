@@ -23,6 +23,15 @@
           </svg>
         </div>
         <span class="brand-name">OmniAI</span>
+        <button id="sidebar-collapse-btn" class="icon-btn" title="Collapse Sidebar (Ctrl+B)">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </button>
+      </div>
+
+      <!-- Sidebar Search Filter -->
+      <div class="sidebar-search-wrap">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input id="sidebar-search" type="text" placeholder="Filter AIs..." autocomplete="off">
       </div>
 
       <nav class="sidebar-nav">
@@ -265,6 +274,14 @@
 
       <!-- Sidebar Footer -->
       <div class="sidebar-footer">
+        <div class="sidebar-footer-icons">
+          <button id="always-on-top-btn" class="icon-btn" title="Always on Top">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M8 6l4-4 4 4M4 14h16M8 18l4 4 4-4M12 22v-4"></path></svg>
+          </button>
+          <button id="cmd-palette-btn" class="icon-btn" title="Command Palette (Ctrl+K)">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
+          </button>
+        </div>
         <button class="nav-item" data-tab="settings">
           <span class="nav-icon">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -290,10 +307,12 @@
               <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
               <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
               <button class="action-btn btn-focus" title="Focus Single Tab"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg></button>
+              <button class="action-btn btn-zoom-in" title="Zoom In"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
+              <button class="action-btn btn-zoom-out" title="Zoom Out"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
             </div>
           </div>
           <div class="webview-wrapper">
-            <webview id="wv-gemini" src="https://gemini.google.com/app" partition="persist:omniai_session"></webview>
+            <webview allowpopups id="wv-gemini" src="https://gemini.google.com/app" partition="persist:omniai_session"></webview>
             <div class="loader-overlay"><div class="spinner"></div><span>Connecting to Gemini...</span></div>
           </div>
         </div>
@@ -307,10 +326,12 @@
               <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
               <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
               <button class="action-btn btn-focus" title="Focus Single Tab"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg></button>
+              <button class="action-btn btn-zoom-in" title="Zoom In"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
+              <button class="action-btn btn-zoom-out" title="Zoom Out"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
             </div>
           </div>
           <div class="webview-wrapper">
-            <webview id="wv-chatgpt" src="https://chatgpt.com/" partition="persist:omniai_session"></webview>
+            <webview allowpopups id="wv-chatgpt" src="https://chatgpt.com/" partition="persist:omniai_session"></webview>
             <div class="loader-overlay"><div class="spinner"></div><span>Connecting to ChatGPT...</span></div>
           </div>
         </div>
@@ -324,10 +345,12 @@
               <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
               <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
               <button class="action-btn btn-focus" title="Focus Single Tab"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg></button>
+              <button class="action-btn btn-zoom-in" title="Zoom In"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
+              <button class="action-btn btn-zoom-out" title="Zoom Out"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
             </div>
           </div>
           <div class="webview-wrapper">
-            <webview id="wv-claude" src="https://claude.ai/" partition="persist:omniai_session"></webview>
+            <webview allowpopups id="wv-claude" src="https://claude.ai/" partition="persist:omniai_session"></webview>
             <div class="loader-overlay"><div class="spinner"></div><span>Connecting to Claude...</span></div>
           </div>
         </div>
@@ -341,10 +364,12 @@
               <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
               <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
               <button class="action-btn btn-focus" title="Focus Single Tab"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg></button>
+              <button class="action-btn btn-zoom-in" title="Zoom In"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
+              <button class="action-btn btn-zoom-out" title="Zoom Out"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
             </div>
           </div>
           <div class="webview-wrapper">
-            <webview id="wv-grok" src="https://grok.com/" partition="persist:omniai_session"></webview>
+            <webview allowpopups id="wv-grok" src="https://grok.com/" partition="persist:omniai_session"></webview>
             <div class="loader-overlay"><div class="spinner"></div><span>Connecting to Grok...</span></div>
           </div>
         </div>
@@ -358,10 +383,12 @@
               <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
               <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
               <button class="action-btn btn-focus" title="Focus Single Tab"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg></button>
+              <button class="action-btn btn-zoom-in" title="Zoom In"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
+              <button class="action-btn btn-zoom-out" title="Zoom Out"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
             </div>
           </div>
           <div class="webview-wrapper">
-            <webview id="wv-deepseek" src="https://chat.deepseek.com/" partition="persist:omniai_session"></webview>
+            <webview allowpopups id="wv-deepseek" src="https://chat.deepseek.com/" partition="persist:omniai_session"></webview>
             <div class="loader-overlay"><div class="spinner"></div><span>Connecting to DeepSeek...</span></div>
           </div>
         </div>
@@ -375,10 +402,12 @@
               <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
               <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
               <button class="action-btn btn-focus" title="Focus Single Tab"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg></button>
+              <button class="action-btn btn-zoom-in" title="Zoom In"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
+              <button class="action-btn btn-zoom-out" title="Zoom Out"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
             </div>
           </div>
           <div class="webview-wrapper">
-            <webview id="wv-qwen" src="https://chat.qwenlm.ai/" partition="persist:omniai_session"></webview>
+            <webview allowpopups id="wv-qwen" src="https://chat.qwenlm.ai/" partition="persist:omniai_session"></webview>
             <div class="loader-overlay"><div class="spinner"></div><span>Connecting to Qwen...</span></div>
           </div>
         </div>
@@ -392,10 +421,12 @@
               <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
               <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
               <button class="action-btn btn-focus" title="Focus Single Tab"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg></button>
+              <button class="action-btn btn-zoom-in" title="Zoom In"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
+              <button class="action-btn btn-zoom-out" title="Zoom Out"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
             </div>
           </div>
           <div class="webview-wrapper">
-            <webview id="wv-copilot" src="https://copilot.microsoft.com/" partition="persist:omniai_session"></webview>
+            <webview allowpopups id="wv-copilot" src="https://copilot.microsoft.com/" partition="persist:omniai_session"></webview>
             <div class="loader-overlay"><div class="spinner"></div><span>Connecting to Copilot...</span></div>
           </div>
         </div>
@@ -409,10 +440,12 @@
               <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
               <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
               <button class="action-btn btn-focus" title="Focus Single Tab"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg></button>
+              <button class="action-btn btn-zoom-in" title="Zoom In"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
+              <button class="action-btn btn-zoom-out" title="Zoom Out"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
             </div>
           </div>
           <div class="webview-wrapper">
-            <webview id="wv-perplexity" src="https://www.perplexity.ai/" partition="persist:omniai_session"></webview>
+            <webview allowpopups id="wv-perplexity" src="https://www.perplexity.ai/" partition="persist:omniai_session"></webview>
             <div class="loader-overlay"><div class="spinner"></div><span>Connecting to Perplexity...</span></div>
           </div>
         </div>
@@ -426,10 +459,12 @@
               <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
               <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
               <button class="action-btn btn-focus" title="Focus Single Tab"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg></button>
+              <button class="action-btn btn-zoom-in" title="Zoom In"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
+              <button class="action-btn btn-zoom-out" title="Zoom Out"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
             </div>
           </div>
           <div class="webview-wrapper">
-            <webview id="wv-lechat" src="https://chat.mistral.ai/" partition="persist:omniai_session"></webview>
+            <webview allowpopups id="wv-lechat" src="https://chat.mistral.ai/" partition="persist:omniai_session"></webview>
             <div class="loader-overlay"><div class="spinner"></div><span>Connecting to Le Chat...</span></div>
           </div>
         </div>
@@ -443,10 +478,12 @@
               <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
               <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
               <button class="action-btn btn-focus" title="Focus Single Tab"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg></button>
+              <button class="action-btn btn-zoom-in" title="Zoom In"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
+              <button class="action-btn btn-zoom-out" title="Zoom Out"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
             </div>
           </div>
           <div class="webview-wrapper">
-            <webview id="wv-pi" src="https://pi.ai/" partition="persist:omniai_session"></webview>
+            <webview allowpopups id="wv-pi" src="https://pi.ai/" partition="persist:omniai_session"></webview>
             <div class="loader-overlay"><div class="spinner"></div><span>Connecting to Pi...</span></div>
           </div>
         </div>
@@ -460,10 +497,12 @@
               <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
               <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
               <button class="action-btn btn-focus" title="Focus Single Tab"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg></button>
+              <button class="action-btn btn-zoom-in" title="Zoom In"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
+              <button class="action-btn btn-zoom-out" title="Zoom Out"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
             </div>
           </div>
           <div class="webview-wrapper">
-            <webview id="wv-you" src="https://you.com/" partition="persist:omniai_session"></webview>
+            <webview allowpopups id="wv-you" src="https://you.com/" partition="persist:omniai_session"></webview>
             <div class="loader-overlay"><div class="spinner"></div><span>Connecting to You.com...</span></div>
           </div>
         </div>
@@ -477,10 +516,12 @@
               <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
               <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
               <button class="action-btn btn-focus" title="Focus Single Tab"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg></button>
+              <button class="action-btn btn-zoom-in" title="Zoom In"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
+              <button class="action-btn btn-zoom-out" title="Zoom Out"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
             </div>
           </div>
           <div class="webview-wrapper">
-            <webview id="wv-poe" src="https://poe.com/" partition="persist:omniai_session"></webview>
+            <webview allowpopups id="wv-poe" src="https://poe.com/" partition="persist:omniai_session"></webview>
             <div class="loader-overlay"><div class="spinner"></div><span>Connecting to Poe...</span></div>
           </div>
         </div>
@@ -494,10 +535,12 @@
               <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
               <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
               <button class="action-btn btn-focus" title="Focus Single Tab"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg></button>
+              <button class="action-btn btn-zoom-in" title="Zoom In"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
+              <button class="action-btn btn-zoom-out" title="Zoom Out"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
             </div>
           </div>
           <div class="webview-wrapper">
-            <webview id="wv-characterai" src="https://character.ai/" partition="persist:omniai_session"></webview>
+            <webview allowpopups id="wv-characterai" src="https://character.ai/" partition="persist:omniai_session"></webview>
             <div class="loader-overlay"><div class="spinner"></div><span>Connecting to Character.AI...</span></div>
           </div>
         </div>
@@ -511,10 +554,12 @@
               <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
               <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
               <button class="action-btn btn-focus" title="Focus Single Tab"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg></button>
+              <button class="action-btn btn-zoom-in" title="Zoom In"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
+              <button class="action-btn btn-zoom-out" title="Zoom Out"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
             </div>
           </div>
           <div class="webview-wrapper">
-            <webview id="wv-metaai" src="https://www.meta.ai/" partition="persist:omniai_session"></webview>
+            <webview allowpopups id="wv-metaai" src="https://www.meta.ai/" partition="persist:omniai_session"></webview>
             <div class="loader-overlay"><div class="spinner"></div><span>Connecting to Meta AI...</span></div>
           </div>
         </div>
@@ -528,10 +573,12 @@
               <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
               <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
               <button class="action-btn btn-focus" title="Focus Single Tab"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg></button>
+              <button class="action-btn btn-zoom-in" title="Zoom In"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
+              <button class="action-btn btn-zoom-out" title="Zoom Out"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
             </div>
           </div>
           <div class="webview-wrapper">
-            <webview id="wv-kimi" src="https://kimi.moonshot.cn/" partition="persist:omniai_session"></webview>
+            <webview allowpopups id="wv-kimi" src="https://kimi.moonshot.cn/" partition="persist:omniai_session"></webview>
             <div class="loader-overlay"><div class="spinner"></div><span>Connecting to Kimi...</span></div>
           </div>
         </div>
@@ -545,10 +592,12 @@
               <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
               <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
               <button class="action-btn btn-focus" title="Focus Single Tab"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg></button>
+              <button class="action-btn btn-zoom-in" title="Zoom In"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
+              <button class="action-btn btn-zoom-out" title="Zoom Out"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
             </div>
           </div>
           <div class="webview-wrapper">
-            <webview id="wv-jasper" src="https://app.jasper.ai/" partition="persist:omniai_session"></webview>
+            <webview allowpopups id="wv-jasper" src="https://app.jasper.ai/" partition="persist:omniai_session"></webview>
             <div class="loader-overlay"><div class="spinner"></div><span>Connecting to Jasper Chat...</span></div>
           </div>
         </div>
@@ -562,10 +611,12 @@
               <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
               <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
               <button class="action-btn btn-focus" title="Focus Single Tab"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg></button>
+              <button class="action-btn btn-zoom-in" title="Zoom In"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
+              <button class="action-btn btn-zoom-out" title="Zoom Out"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
             </div>
           </div>
           <div class="webview-wrapper">
-            <webview id="wv-phind" src="https://www.phind.com/" partition="persist:omniai_session"></webview>
+            <webview allowpopups id="wv-phind" src="https://www.phind.com/" partition="persist:omniai_session"></webview>
             <div class="loader-overlay"><div class="spinner"></div><span>Connecting to Phind...</span></div>
           </div>
         </div>
@@ -579,10 +630,12 @@
               <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
               <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
               <button class="action-btn btn-focus" title="Focus Single Tab"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg></button>
+              <button class="action-btn btn-zoom-in" title="Zoom In"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
+              <button class="action-btn btn-zoom-out" title="Zoom Out"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
             </div>
           </div>
           <div class="webview-wrapper">
-            <webview id="wv-huggingchat" src="https://huggingface.co/chat" partition="persist:omniai_session"></webview>
+            <webview allowpopups id="wv-huggingchat" src="https://huggingface.co/chat" partition="persist:omniai_session"></webview>
             <div class="loader-overlay"><div class="spinner"></div><span>Connecting to Hugging Chat...</span></div>
           </div>
         </div>
@@ -596,10 +649,12 @@
               <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
               <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
               <button class="action-btn btn-focus" title="Focus Single Tab"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg></button>
+              <button class="action-btn btn-zoom-in" title="Zoom In"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
+              <button class="action-btn btn-zoom-out" title="Zoom Out"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
             </div>
           </div>
           <div class="webview-wrapper">
-            <webview id="wv-duckchat" src="https://duckduckgo.com/chat" partition="persist:omniai_session"></webview>
+            <webview allowpopups id="wv-duckchat" src="https://duckduckgo.com/chat" partition="persist:omniai_session"></webview>
             <div class="loader-overlay"><div class="spinner"></div><span>Connecting to Duck AI Chat...</span></div>
           </div>
         </div>
@@ -613,10 +668,12 @@
               <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
               <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
               <button class="action-btn btn-focus" title="Focus Single Tab"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg></button>
+              <button class="action-btn btn-zoom-in" title="Zoom In"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
+              <button class="action-btn btn-zoom-out" title="Zoom Out"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
             </div>
           </div>
           <div class="webview-wrapper">
-            <webview id="wv-groq" src="https://chat.groq.com/" partition="persist:omniai_session"></webview>
+            <webview allowpopups id="wv-groq" src="https://chat.groq.com/" partition="persist:omniai_session"></webview>
             <div class="loader-overlay"><div class="spinner"></div><span>Connecting to Groq Chat...</span></div>
           </div>
         </div>
@@ -630,10 +687,12 @@
               <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
               <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
               <button class="action-btn btn-focus" title="Focus Single Tab"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg></button>
+              <button class="action-btn btn-zoom-in" title="Zoom In"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
+              <button class="action-btn btn-zoom-out" title="Zoom Out"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
             </div>
           </div>
           <div class="webview-wrapper">
-            <webview id="wv-blackbox" src="https://www.blackbox.ai/" partition="persist:omniai_session"></webview>
+            <webview allowpopups id="wv-blackbox" src="https://www.blackbox.ai/" partition="persist:omniai_session"></webview>
             <div class="loader-overlay"><div class="spinner"></div><span>Connecting to Blackbox AI...</span></div>
           </div>
         </div>
@@ -647,10 +706,12 @@
               <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
               <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
               <button class="action-btn btn-focus" title="Focus Single Tab"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg></button>
+              <button class="action-btn btn-zoom-in" title="Zoom In"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
+              <button class="action-btn btn-zoom-out" title="Zoom Out"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
             </div>
           </div>
           <div class="webview-wrapper">
-            <webview id="wv-cohere" src="https://coral.cohere.com/" partition="persist:omniai_session"></webview>
+            <webview allowpopups id="wv-cohere" src="https://coral.cohere.com/" partition="persist:omniai_session"></webview>
             <div class="loader-overlay"><div class="spinner"></div><span>Connecting to Cohere Coral...</span></div>
           </div>
         </div>
@@ -664,10 +725,12 @@
               <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
               <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
               <button class="action-btn btn-focus" title="Focus Single Tab"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg></button>
+              <button class="action-btn btn-zoom-in" title="Zoom In"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
+              <button class="action-btn btn-zoom-out" title="Zoom Out"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
             </div>
           </div>
           <div class="webview-wrapper">
-            <webview id="wv-openrouter" src="https://openrouter.ai/chat" partition="persist:omniai_session"></webview>
+            <webview allowpopups id="wv-openrouter" src="https://openrouter.ai/chat" partition="persist:omniai_session"></webview>
             <div class="loader-overlay"><div class="spinner"></div><span>Connecting to OpenRouter Chat...</span></div>
           </div>
         </div>
@@ -683,7 +746,7 @@
             </div>
           </div>
           <div class="webview-wrapper">
-            <webview id="wv-google" src="https://accounts.google.com/" partition="persist:omniai_session"></webview>
+            <webview allowpopups id="wv-google" src="https://accounts.google.com/" partition="persist:omniai_session"></webview>
             <div class="loader-overlay"><div class="spinner"></div><span>Connecting to Google Account Sign-In...</span></div>
           </div>
         </div>
@@ -831,47 +894,82 @@
       <!-- Global Broadcast Bar -->
       <div id="broadcast-panel" class="broadcast-bar-container">
         <div class="broadcast-inner">
-          <div class="broadcast-textarea-wrapper">
-            <textarea id="broadcast-input" placeholder="Enter prompt to execute across all active AIs... (Ctrl+Enter to send)"></textarea>
+          <!-- Row 1: Active indicators tray (full width, wrapping badges) -->
+          <div class="active-indicators-tray" id="active-indicators-tray" title="Active receivers for broadcast">
+            <span class="tray-badge" data-indicator="gemini">Gemini</span>
+            <span class="tray-badge" data-indicator="chatgpt">ChatGPT</span>
+            <span class="tray-badge" data-indicator="claude">Claude</span>
+            <span class="tray-badge" data-indicator="grok">Grok</span>
+            <span class="tray-badge" data-indicator="deepseek">DeepSeek</span>
+            <span class="tray-badge" data-indicator="qwen">Qwen</span>
+            <span class="tray-badge" data-indicator="copilot">Copilot</span>
+            <span class="tray-badge" data-indicator="perplexity">Perplexity</span>
+            <span class="tray-badge" data-indicator="lechat">Le Chat</span>
+            <span class="tray-badge" data-indicator="pi">Pi</span>
+            <span class="tray-badge" data-indicator="you">You</span>
+            <span class="tray-badge" data-indicator="poe">Poe</span>
+            <span class="tray-badge" data-indicator="characterai">C.AI</span>
+            <span class="tray-badge" data-indicator="metaai">Meta</span>
+            <span class="tray-badge" data-indicator="kimi">Kimi</span>
+            <span class="tray-badge" data-indicator="jasper">Jasper</span>
+            <span class="tray-badge" data-indicator="phind">Phind</span>
+            <span class="tray-badge" data-indicator="huggingchat">Hugging</span>
+            <span class="tray-badge" data-indicator="duckchat">Duck</span>
+            <span class="tray-badge" data-indicator="groq">Groq</span>
+            <span class="tray-badge" data-indicator="blackbox">B.Box</span>
+            <span class="tray-badge" data-indicator="cohere">Cohere</span>
+            <span class="tray-badge" data-indicator="openrouter">O.Router</span>
           </div>
-          <div class="broadcast-controls">
-            <div class="active-indicators-tray" id="active-indicators-tray" title="Active receivers for broadcast">
-              <span class="tray-badge" data-indicator="gemini">Gemini</span>
-              <span class="tray-badge" data-indicator="chatgpt">ChatGPT</span>
-              <span class="tray-badge" data-indicator="claude">Claude</span>
-              <span class="tray-badge" data-indicator="grok">Grok</span>
-              <span class="tray-badge" data-indicator="deepseek">DeepSeek</span>
-              <span class="tray-badge" data-indicator="qwen">Qwen</span>
-              <span class="tray-badge" data-indicator="copilot">Copilot</span>
-              <span class="tray-badge" data-indicator="perplexity">Perplexity</span>
-              <span class="tray-badge" data-indicator="lechat">Le Chat</span>
-              <span class="tray-badge" data-indicator="pi">Pi</span>
-              <span class="tray-badge" data-indicator="you">You</span>
-              <span class="tray-badge" data-indicator="poe">Poe</span>
-              <span class="tray-badge" data-indicator="characterai">C.AI</span>
-              <span class="tray-badge" data-indicator="metaai">Meta</span>
-              <span class="tray-badge" data-indicator="kimi">Kimi</span>
-              <span class="tray-badge" data-indicator="jasper">Jasper</span>
-              <span class="tray-badge" data-indicator="phind">Phind</span>
-              <span class="tray-badge" data-indicator="huggingchat">Hugging</span>
-              <span class="tray-badge" data-indicator="duckchat">Duck</span>
-              <span class="tray-badge" data-indicator="groq">Groq</span>
-              <span class="tray-badge" data-indicator="blackbox">B.Box</span>
-              <span class="tray-badge" data-indicator="cohere">Cohere</span>
-              <span class="tray-badge" data-indicator="openrouter">O.Router</span>
+          <!-- Row 2: Textarea + Buttons -->
+          <div class="broadcast-input-row">
+            <div class="broadcast-textarea-wrapper">
+              <textarea id="broadcast-input" placeholder="Enter prompt to execute across all active AIs... (Ctrl+Enter to send)"></textarea>
             </div>
-            <button id="broadcast-send-btn" class="broadcast-btn" title="Broadcast prompt (Ctrl+Enter)">
-              <span>Broadcast</span>
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
-                <line x1="22" y1="2" x2="11" y2="13"></line>
-                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-              </svg>
-            </button>
+            <div class="broadcast-controls">
+              <button id="templates-open-btn" class="icon-btn broadcast-icon-btn" title="Prompt Templates">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+              </button>
+              <button id="broadcast-send-btn" class="broadcast-btn" title="Broadcast prompt (Ctrl+Enter)">
+                <span>Broadcast</span>
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <line x1="22" y1="2" x2="11" y2="13"></line>
+                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
         <div class="broadcast-status-message" id="broadcast-status">Ready to broadcast</div>
       </div>
     </main>
+  </div>
+
+  <!-- Command Palette Modal -->
+  <div id="cmd-palette-overlay" class="modal-overlay hidden">
+    <div class="cmd-palette">
+      <div class="cmd-palette-search">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input id="cmd-search-input" type="text" placeholder="Search tabs, settings, actions..." autocomplete="off">
+        <kbd>ESC</kbd>
+      </div>
+      <div id="cmd-results" class="cmd-results"></div>
+    </div>
+  </div>
+
+  <!-- Prompt Templates Modal -->
+  <div id="templates-overlay" class="modal-overlay hidden">
+    <div class="templates-modal">
+      <div class="templates-header">
+        <span>Prompt Templates</span>
+        <button id="templates-close-btn" class="icon-btn"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+      </div>
+      <div class="templates-add-row">
+        <input id="template-name-input" type="text" placeholder="Template name..." class="templates-input">
+        <textarea id="template-body-input" placeholder="Prompt text..." class="templates-textarea" rows="2"></textarea>
+        <button id="template-save-btn" class="btn broadcast-btn">Save Template</button>
+      </div>
+      <div id="templates-list" class="templates-list"></div>
+    </div>
   </div>
 
   <script src="renderer.js"></script>
