@@ -38,7 +38,6 @@ function createWindow() {
   });
 
   mainWindow.loadFile('index.html');
-  mainWindow.webContents.openDevTools();
 
   // Open links with target="_blank" in the default OS browser instead of inside the app main view
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {

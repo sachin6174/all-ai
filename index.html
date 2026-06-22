@@ -830,15 +830,6 @@
 
       <!-- Global Broadcast Bar -->
       <div id="broadcast-panel" class="broadcast-bar-container">
-        <!-- Quick Action Prompt Templates -->
-        <div class="broadcast-quick-actions">
-          <span class="action-pill" data-template="Review this code for bugs, logic errors, and performance improvements:\n\n">⚡ Code Review</span>
-          <span class="action-pill" data-template="Summarize the following text in bullet points with key takeaways:\n\n">📝 Summarize</span>
-          <span class="action-pill" data-template="Explain this concept like I am a 5-year-old child with simple analogies:\n\n">💡 ELI5</span>
-          <span class="action-pill" data-template="Find any potential edge cases, security flaws, or bugs in this code:\n\n">🔍 Bug Finder</span>
-          <span class="action-pill" data-template="Translate this text to Spanish, French, Japanese, and Hindi:\n\n">🌐 Translate</span>
-        </div>
-
         <div class="broadcast-inner">
           <div class="broadcast-textarea-wrapper">
             <textarea id="broadcast-input" placeholder="Enter prompt to execute across all active AIs... (Ctrl+Enter to send)"></textarea>
@@ -869,35 +860,16 @@
               <span class="tray-badge" data-indicator="cohere">Cohere</span>
               <span class="tray-badge" data-indicator="openrouter">O.Router</span>
             </div>
-            <div style="display: flex; gap: 8px; align-items: center;">
-              <button id="broadcast-history-btn" class="action-btn" style="border: 1px solid var(--border-color);" title="Toggle Prompt History">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <polyline points="12 6 12 12 16 14"></polyline>
-                </svg>
-              </button>
-              <button id="broadcast-send-btn" class="broadcast-btn" title="Broadcast prompt (Ctrl+Enter)">
-                <span>Broadcast</span>
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
-                  <line x1="22" y1="2" x2="11" y2="13"></line>
-                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                </svg>
-              </button>
-            </div>
+            <button id="broadcast-send-btn" class="broadcast-btn" title="Broadcast prompt (Ctrl+Enter)">
+              <span>Broadcast</span>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+            </button>
           </div>
         </div>
         <div class="broadcast-status-message" id="broadcast-status">Ready to broadcast</div>
-      </div>
-
-      <!-- Sliding History Drawer -->
-      <div id="history-drawer" class="history-drawer hidden">
-        <div class="history-header">
-          <h3>Broadcast Prompt History</h3>
-          <button id="close-history-btn" class="action-btn" title="Close Drawer" style="font-size: 20px; font-weight: 700; opacity: 0.7;">&times;</button>
-        </div>
-        <div class="history-drawer-content">
-          <div id="history-items-container" class="history-list"></div>
-        </div>
       </div>
     </main>
   </div>

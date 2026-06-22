@@ -10,7 +10,6 @@ let currentState = {
   themeAccent: '#5b5df8',
   themeGlow: 'rgba(91, 93, 248, 0.35)',
   broadcastHistory: [],
-  broadcastMutes: {}, // Track muted broadcast receivers
   enabledModels: {
     gemini: true,
     chatgpt: true,
@@ -58,14 +57,7 @@ function loadConfig() {
   if (savedState) {
     try {
       const parsed = JSON.parse(savedState);
-      
-      // Merge enabledModels key-by-key so new default models are not lost
-      if (parsed.enabledModels) {
-        parsed.enabledModels = { ...currentState.enabledModels, ...parsed.enabledModels };
-      }
-      
       currentState = { ...currentState, ...parsed };
-      if (!currentState.broadcastMutes) currentState.broadcastMutes = {};
     } catch (e) {
       console.error('Error loading config:', e);
     }
@@ -80,7 +72,6 @@ function saveConfig() {
     themeAccent: currentState.themeAccent,
     themeGlow: currentState.themeGlow,
     broadcastHistory: currentState.broadcastHistory,
-    broadcastMutes: currentState.broadcastMutes,
     enabledModels: currentState.enabledModels
   }));
 }
@@ -100,9 +91,8 @@ function initUI() {
     }
   });
 
-  // Inject sidebar and megaphone controls dynamically
+  // Inject sidebar toggles dynamically
   injectSidebarToggles();
-  injectCardMegaphones();
 
   // 1. Setup Layout
   updateLayoutClass(currentState.layout);
@@ -167,13 +157,6 @@ function initUI() {
       } else {
         trayBadge.classList.remove('active');
       }
-
-      // Sync muted state
-      if (currentState.broadcastMutes[model]) {
-        trayBadge.classList.add('broadcast-muted');
-      } else {
-        trayBadge.classList.remove('broadcast-muted');
-      }
     }
   });
 
@@ -237,118 +220,6 @@ function injectSidebarToggles() {
   });
 }
 
-// Inject megaphone buttons into card headers dynamically on app start
-function injectCardMegaphones() {
-  document.querySelectorAll('.webview-card').forEach(card => {
-    const model = card.getAttribute('data-model');
-    if (!model || model === 'google') return; // Skip utility
-
-    const actions = card.querySelector('.card-actions');
-    if (!actions) return;
-
-    if (actions.querySelector('.btn-broadcast-toggle')) return; // Avoid duplicate
-
-    const btn = document.createElement('button');
-    btn.className = 'action-btn btn-broadcast-toggle';
-    btn.title = 'Toggle Broadcast Receiver';
-    btn.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>`;
-
-    // Toggle mute click handler
-    btn.addEventListener('click', () => {
-      const isMuted = !currentState.broadcastMutes[model];
-      currentState.broadcastMutes[model] = isMuted;
-
-      if (isMuted) {
-        btn.classList.add('muted');
-        btn.title = 'Broadcast Receiver: MUTED';
-      } else {
-        btn.classList.remove('muted');
-        btn.title = 'Broadcast Receiver: ACTIVE';
-      }
-
-      // Sync the tray badge in the broadcast panel
-      const badge = document.querySelector(`.tray-badge[data-indicator="${model}"]`);
-      if (badge) {
-        if (isMuted) {
-          badge.classList.add('broadcast-muted');
-        } else {
-          badge.classList.remove('broadcast-muted');
-        }
-      }
-
-      saveConfig();
-    });
-
-    // Set initial state based on config
-    if (currentState.broadcastMutes[model]) {
-      btn.classList.add('muted');
-      btn.title = 'Broadcast Receiver: MUTED';
-    }
-
-    // Prepend to actions
-    actions.insertBefore(btn, actions.firstChild);
-  });
-}
-
-// Clean up styles to hide sidebars and headers for better layout inside grids
-function updateCleanLayout(tabId) {
-  const models = [
-    'gemini', 'chatgpt', 'claude', 'grok', 'deepseek', 'qwen', 
-    'copilot', 'perplexity', 'lechat', 'pi', 'you', 'poe', 
-    'characterai', 'metaai', 'kimi', 'jasper', 
-    'phind', 'huggingchat', 'duckchat', 'groq', 'blackbox', 
-    'cohere', 'openrouter'
-  ];
-
-  models.forEach(model => {
-    updateCleanLayoutForModel(model, tabId);
-  });
-}
-
-// Clean layout for a single model
-function updateCleanLayoutForModel(model, tabId) {
-  const webview = document.getElementById(`wv-${model}`);
-  if (!webview) return;
-
-  if (typeof webview.executeJavaScript !== 'function') {
-    return;
-  }
-
-  const isDashboard = tabId === 'dashboard';
-  const isSingleFocus = !isDashboard && tabId === model;
-
-  let cleanCSS = '';
-  if (model === 'gemini') {
-    cleanCSS = 'gmat-nav-drawer, .gb_xd, header { display: none !important; }';
-  } else if (model === 'chatgpt') {
-    cleanCSS = 'div[role=\"navigation\"], .hidden.md\\\\:flex { display: none !important; }';
-  } else if (model === 'claude') {
-    cleanCSS = 'nav, .relative.flex.h-full.w-64 { display: none !important; }';
-  } else if (model === 'deepseek') {
-    cleanCSS = '.chat-sidebar, .sidebar { display: none !important; }';
-  } else {
-    cleanCSS = 'aside, nav, [role=\"navigation\"], .sidebar, .left-panel { display: none !important; }';
-  }
-
-  webview.executeJavaScript(`
-    (function() {
-      let styleEl = document.getElementById('omniai-clean-layout-styles');
-      if (${isSingleFocus}) {
-        if (styleEl) styleEl.remove();
-      } else {
-        if (!styleEl) {
-          styleEl = document.createElement('style');
-          styleEl.id = 'omniai-clean-layout-styles';
-          styleEl.textContent = \`${cleanCSS}\`;
-          document.head.appendChild(styleEl);
-        }
-      }
-    })()
-  `).catch(err => {
-    // Page load may still be pending
-  });
-}
-
 // Switch navigation tabs (Dashboard, Google, Gemini, ChatGPT, etc.)
 function switchTab(tabId) {
   currentState.activeTab = tabId;
@@ -391,11 +262,9 @@ function switchTab(tabId) {
     if (targetCard) {
       targetCard.classList.add('focus-target');
       // Ensure target is not hidden by dashboard toggles
+      targetCard.classList.remove('card-disabled');
     }
   }
-
-  // Dynamic layout cleaner (collapses/restores sidebars)
-  updateCleanLayout(tabId);
 }
 
 // Update dashboard layout class names
@@ -436,10 +305,10 @@ function setupWebviewEvents() {
   models.forEach(model => {
     const webview = document.getElementById(`wv-${model}`);
     const card = document.getElementById(`card-${model}`);
-    if (!webview || !card) return;
-    
     const loader = card.querySelector('.loader-overlay');
     const dot = document.getElementById(`dot-${model}`);
+
+    if (!webview) return;
 
     // Loading started
     webview.addEventListener('did-start-loading', () => {
@@ -463,7 +332,6 @@ function setupWebviewEvents() {
       if (dot) {
         dot.className = 'nav-status-dot active';
       }
-      updateCleanLayoutForModel(model, currentState.activeTab);
     });
 
     // Load failed
@@ -557,12 +425,6 @@ function executeBroadcast() {
   Object.keys(currentState.enabledModels).forEach(model => {
     const isEnabled = currentState.enabledModels[model];
     if (!isEnabled) return;
-
-    // Check if muted for broadcast
-    if (currentState.broadcastMutes[model]) {
-      console.log(`OmniAI: Skipping broadcast injection for muted model: ${model}`);
-      return;
-    }
 
     const webview = document.getElementById(`wv-${model}`);
     if (webview) {
@@ -799,7 +661,7 @@ function setupListeners() {
   // 9. Window Navigation Hotkeys (Ctrl + D, Ctrl + S, Ctrl + 1..9)
   window.addEventListener('keydown', (e) => {
     // Skip if writing in input or textarea
-    if (!document.activeElement || document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA' || document.activeElement.getAttribute('contenteditable') === 'true') {
+    if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA' || document.activeElement.getAttribute('contenteditable') === 'true') {
       return;
     }
 
@@ -826,70 +688,6 @@ function setupListeners() {
       }
     }
   });
-
-  // 10. Quick Action Template Pills
-  document.querySelectorAll('.action-pill').forEach(pill => {
-    pill.addEventListener('click', () => {
-      const template = pill.getAttribute('data-template');
-      const formatted = template.replace(/\\n/g, '\n');
-      broadcastInput.value = formatted + broadcastInput.value;
-      broadcastInput.focus();
-      broadcastInput.selectionStart = broadcastInput.selectionEnd = broadcastInput.value.length;
-    });
-  });
-
-  // 11. Sliding History Drawer Shelf
-  const historyDrawer = document.getElementById('history-drawer');
-  const historyBtn = document.getElementById('broadcast-history-btn');
-  const closeHistoryBtn = document.getElementById('close-history-btn');
-  const historyContainer = document.getElementById('history-items-container');
-
-  function renderHistoryDrawer() {
-    if (!historyContainer) return;
-    historyContainer.innerHTML = '';
-    if (currentState.broadcastHistory.length === 0) {
-      historyContainer.innerHTML = '<div style="color:var(--text-dark); text-align:center; padding: 20px; font-size:13px;">No history available yet.</div>';
-      return;
-    }
-
-    currentState.broadcastHistory.forEach((promptText, idx) => {
-      const item = document.createElement('div');
-      item.className = 'history-item';
-      item.textContent = promptText;
-      item.title = promptText;
-      
-      item.addEventListener('click', () => {
-        broadcastInput.value = promptText;
-        historyIndex = idx;
-        broadcastInput.focus();
-        if (historyDrawer) historyDrawer.classList.add('hidden');
-        if (historyBtn) historyBtn.classList.remove('active');
-      });
-
-      historyContainer.appendChild(item);
-    });
-  }
-
-  if (historyBtn && historyDrawer) {
-    historyBtn.addEventListener('click', () => {
-      const isHidden = historyDrawer.classList.contains('hidden');
-      if (isHidden) {
-        renderHistoryDrawer();
-        historyDrawer.classList.remove('hidden');
-        historyBtn.classList.add('active');
-      } else {
-        historyDrawer.classList.add('hidden');
-        historyBtn.classList.remove('active');
-      }
-    });
-  }
-
-  if (closeHistoryBtn && historyDrawer && historyBtn) {
-    closeHistoryBtn.addEventListener('click', () => {
-      historyDrawer.classList.add('hidden');
-      historyBtn.classList.remove('active');
-    });
-  }
 }
 
 // App Initialization
