@@ -13,6 +13,7 @@ let currentState = {
   enabledModels: {
     gemini: true,
     chatgpt: true,
+    zai: true,
     claude: true,
     grok: true,
     deepseek: true,
@@ -295,7 +296,7 @@ function updateLayoutClass(layoutName) {
 // Attach lifecycle events to all webviews in the app
 function setupWebviewEvents() {
   const models = [
-    'gemini', 'chatgpt', 'claude', 'grok', 'deepseek', 'qwen', 
+    'gemini', 'chatgpt', 'zai', 'claude', 'grok', 'deepseek', 'qwen', 
     'copilot', 'perplexity', 'lechat', 'pi', 'you', 'poe', 
     'characterai', 'metaai', 'kimi', 'jasper', 
     'phind', 'huggingchat', 'duckchat', 'groq', 'blackbox', 
@@ -758,7 +759,7 @@ const CMD_ITEMS = [
   { label: 'Always on Top',    badge: '',       icon: '📌',  action: () => toggleAlwaysOnTop() },
   { label: 'Open Templates',   badge: '',       icon: '📄',  action: () => openTemplatesModal() },
   { label: 'Broadcast',        badge: 'Ctrl+↵', icon: '📡',  action: () => document.getElementById('broadcast-send-btn').click() },
-  ...['gemini','chatgpt','claude','grok','deepseek','qwen','copilot','perplexity',
+  ...['gemini','chatgpt','zai','claude','grok','deepseek','qwen','copilot','perplexity',
       'lechat','pi','you','poe','characterai','metaai','kimi','jasper',
       'phind','huggingchat','duckchat','groq','blackbox','cohere','openrouter'].map((id, i) => ({
     label: (document.querySelector(`.nav-item[data-tab="${id}"] .nav-label`)?.textContent || id),

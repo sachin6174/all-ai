@@ -3,9 +3,12 @@ const path = require('path');
 
 let mainWindow;
 
-// Standard Chrome User Agent to bypass Google's "secure browser" restriction
+// Standard Chrome User Agent (matches the underlying Chromium engine of Electron to avoid discrepancy detection)
 const MODERN_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36';
 const SHARED_PARTITION = 'persist:omniai_session';
+
+// Critical for bypassing Google Auth "secure browser" checks
+app.userAgentFallback = MODERN_USER_AGENT;
 
 function configureSessions() {
   const ses = session.fromPartition(SHARED_PARTITION);
@@ -44,27 +47,7 @@ function createWindow() {
 
   mainWindow.loadFile('index.html');
 
-  // Handle window creation (popups) to ensure they are secure enough for Google OAuth
-  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    // If it's a Google Auth URL, allow it but strip Node integration so Google doesn't detect Electron
-    if (url.includes('accounts.google.com') || url.includes('oauth') || url.includes('signin')) {
-      return {
-        action: 'allow',
-        overrideBrowserWindowOptions: {
-          webPreferences: {
-            nodeIntegration: false,
-            contextIsolation: true,
-            sandbox: true,
-            userAgent: MODERN_USER_AGENT
-          }
-        }
-      };
-    }
-    
-    // For normal external links, open in the user's default OS browser
-    shell.openExternal(url);
-    return { action: 'deny' };
-  });
+  // (Removed mainWindow.webContents.setWindowOpenHandler since we'll handle it globally)
 
   // Handle window cleanup
   mainWindow.on('closed', () => {
@@ -80,12 +63,33 @@ app.whenReady().then(() => {
   // Enforce custom user agent on ANY new window/webContents created (including allowpopups from webviews)
   app.on('web-contents-created', (event, contents) => {
     contents.on('will-attach-webview', (e, webPreferences, params) => {
-      // Ensure webviews themselves inherit the spoofed agent if not already
       webPreferences.userAgent = MODERN_USER_AGENT;
     });
     
-    // Set the user agent for the new webContents itself (this covers popup windows)
     contents.userAgent = MODERN_USER_AGENT;
+
+    // Globally handle ANY popup (window.open) triggered by ANY webContents (including webviews)
+    contents.setWindowOpenHandler(({ url }) => {
+      // Allow Google login popups to open as secure, stripped-down BrowserWindows
+      if (url.includes('accounts.google.com') || url.includes('oauth') || url.includes('signin') || url.includes('google.com')) {
+        return {
+          action: 'allow',
+          overrideBrowserWindowOptions: {
+            webPreferences: {
+              nodeIntegration: false, // Critical for Google Auth!
+              contextIsolation: true,
+              sandbox: true,
+              partition: SHARED_PARTITION,
+              userAgent: MODERN_USER_AGENT
+            }
+          }
+        };
+      }
+      
+      // All other external links (not auth) go to default OS browser
+      shell.openExternal(url);
+      return { action: 'deny' };
+    });
   });
 
   app.on('activate', () => {
