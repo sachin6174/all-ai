@@ -1,6 +1,6 @@
 {
   "name": "omni-ai-chat",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Multi-platform desktop client integrating multiple AI chats with global broadcast.",
   "main": "main.js",
   "scripts": {
