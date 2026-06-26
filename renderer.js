@@ -10,6 +10,7 @@ let currentState = {
   themeAccent: '#5b5df8',
   themeGlow: 'rgba(91, 93, 248, 0.35)',
   broadcastHistory: [],
+  promptsHistory: [],
   enabledModels: {
     gemini: true,
     chatgpt: true,
@@ -59,6 +60,9 @@ function loadConfig() {
     try {
       const parsed = JSON.parse(savedState);
       currentState = { ...currentState, ...parsed };
+      if (!currentState.promptsHistory) {
+        currentState.promptsHistory = [];
+      }
     } catch (e) {
       console.error('Error loading config:', e);
     }
@@ -73,6 +77,7 @@ function saveConfig() {
     themeAccent: currentState.themeAccent,
     themeGlow: currentState.themeGlow,
     broadcastHistory: currentState.broadcastHistory,
+    promptsHistory: currentState.promptsHistory,
     enabledModels: currentState.enabledModels
   }));
 }
@@ -163,6 +168,9 @@ function initUI() {
 
   // 4. Setup active tab
   switchTab(currentState.activeTab);
+
+  // 5. Update workspace monitor widget
+  updateWorkspaceWidget();
 }
 
 // Inject sidebar toggles dynamically on app start
@@ -215,6 +223,7 @@ function injectSidebarToggles() {
       }
 
       saveConfig();
+      updateWorkspaceWidget();
     });
 
     navBtn.appendChild(checkbox);
@@ -238,10 +247,13 @@ function switchTab(tabId) {
   mainWorkspace.classList.remove('single-focus-active');
   document.querySelectorAll('.webview-card').forEach(card => card.classList.remove('focus-target'));
 
+  const promptsHistoryPane = document.getElementById('prompts-history-pane');
+
   if (tabId === 'dashboard') {
     // Show Dashboard view
     webviewContainer.classList.remove('hidden');
     settingsPane.classList.add('hidden');
+    if (promptsHistoryPane) promptsHistoryPane.classList.add('hidden');
     broadcastPanel.classList.remove('hidden');
     
     // Reset layout configuration grid classes
@@ -250,11 +262,20 @@ function switchTab(tabId) {
     // Show Settings view
     webviewContainer.classList.add('hidden');
     settingsPane.classList.remove('hidden');
+    if (promptsHistoryPane) promptsHistoryPane.classList.add('hidden');
     broadcastPanel.classList.add('hidden');
+  } else if (tabId === 'prompts-history') {
+    // Show Prompts History view
+    webviewContainer.classList.add('hidden');
+    settingsPane.classList.add('hidden');
+    if (promptsHistoryPane) promptsHistoryPane.classList.remove('hidden');
+    broadcastPanel.classList.add('hidden');
+    renderPromptsHistory();
   } else {
     // Single Focused Tab (e.g. Gemini, Google Account Manager, etc.)
     webviewContainer.classList.remove('hidden');
     settingsPane.classList.add('hidden');
+    if (promptsHistoryPane) promptsHistoryPane.classList.add('hidden');
     broadcastPanel.classList.add('hidden'); // Hide broadcast during single focus
 
     // Focus target card
@@ -333,7 +354,28 @@ function setupWebviewEvents() {
       if (dot) {
         dot.className = 'nav-status-dot active';
       }
+      
+      // Inject text monitor script if not the Google Sign-in helper card
+      if (model !== 'google') {
+        webview.executeJavaScript(guestMonitorScript)
+          .catch(err => console.error(`[${model}] Monitor injection failed:`, err));
+      }
     });
+
+    // Handle incoming prompts from console messages
+    if (model !== 'google') {
+      webview.addEventListener('console-message', (e) => {
+        const msg = e.message;
+        if (msg && msg.startsWith('OMNIAI_PROMPT_SUBMIT:')) {
+          const promptText = msg.substring('OMNIAI_PROMPT_SUBMIT:'.length).trim();
+          if (promptText) {
+            // Capitalize model name for clean display badge
+            const prettySource = model.charAt(0).toUpperCase() + model.slice(1);
+            addPromptToHistory(promptText, prettySource);
+          }
+        }
+      });
+    }
 
     // Load failed
     webview.addEventListener('did-fail-load', (e) => {
@@ -392,6 +434,7 @@ function executeBroadcast() {
     }
     saveConfig();
   }
+  addPromptToHistory(prompt, 'Broadcast');
   historyIndex = -1; // Reset cycling index
 
   // Read the injection script code
@@ -543,6 +586,7 @@ function setupListeners() {
         }
 
         saveConfig();
+        updateWorkspaceWidget();
       });
     }
   });
@@ -690,6 +734,35 @@ function setupListeners() {
       }
     }
   });
+
+  // 10. Prompt History Search and Clear
+  const historySearch = document.getElementById('history-search');
+  if (historySearch) {
+    historySearch.addEventListener('input', renderPromptsHistory);
+  }
+
+  const clearHistoryBtn = document.getElementById('clear-history-btn');
+  if (clearHistoryBtn) {
+    clearHistoryBtn.addEventListener('click', () => {
+      if (confirm('Are you sure you want to clear your prompt history? Pinned prompts will also be deleted.')) {
+        currentState.promptsHistory = [];
+        saveConfig();
+        updateWorkspaceWidget();
+        renderPromptsHistory();
+      }
+    });
+  }
+
+  // 11. Workspace Monitor Widget Quick Actions
+  const widgetPaletteBtn = document.getElementById('widget-btn-palette');
+  if (widgetPaletteBtn) {
+    widgetPaletteBtn.addEventListener('click', openCmdPalette);
+  }
+
+  const widgetTemplatesBtn = document.getElementById('widget-btn-templates');
+  if (widgetTemplatesBtn) {
+    widgetTemplatesBtn.addEventListener('click', openTemplatesModal);
+  }
 }
 
 // App Initialization
@@ -1006,3 +1079,313 @@ function initBroadcastEnhancements() {
     observer.observe(broadcastStatus, { characterData: true, childList: true, subtree: true });
   }
 }
+
+/* =================================================================
+   FEATURE: Webview guest monitor injection script
+================================================================= */
+const guestMonitorScript = `
+  (function() {
+    if (window.hasOwnProperty('__omniai_monitor_active')) return;
+    window.__omniai_monitor_active = true;
+    
+    let lastTypedText = '';
+    
+    // Monitor inputs and updates on textareas/editable divs
+    document.addEventListener('input', (e) => {
+      const el = e.target;
+      if (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') {
+        lastTypedText = el.value;
+      } else if (el.getAttribute('contenteditable') === 'true') {
+        lastTypedText = el.innerText;
+      }
+    }, true);
+    
+    // Listen to Enter key submissions
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        const text = lastTypedText.trim();
+        if (text) {
+          console.log("OMNIAI_PROMPT_SUBMIT:" + text);
+        }
+      }
+    }, true);
+    
+    // Listen to Send button clicks
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('button, [role="button"], a');
+      if (btn) {
+        const isSendBtn = btn.querySelector('svg') || 
+                         btn.getAttribute('aria-label')?.toLowerCase().includes('send') ||
+                         btn.getAttribute('aria-label')?.toLowerCase().includes('submit') ||
+                         btn.className?.toLowerCase().includes('send') ||
+                         btn.className?.toLowerCase().includes('submit') ||
+                         btn.textContent?.toLowerCase().includes('send') ||
+                         btn.getAttribute('data-testid')?.toLowerCase().includes('send');
+        if (isSendBtn) {
+          const text = lastTypedText.trim();
+          if (text) {
+            console.log("OMNIAI_PROMPT_SUBMIT:" + text);
+          }
+        }
+      }
+    }, true);
+  })();
+`;
+
+/* =================================================================
+   FEATURE: Prompt History Helpers & Rendering
+================================================================= */
+function addPromptToHistory(text, source) {
+  if (!currentState.promptsHistory) {
+    currentState.promptsHistory = [];
+  }
+  
+  // Clean text
+  const cleanText = text.trim();
+  if (!cleanText) return;
+  
+  // Check if the exact prompt already exists in history
+  const existingIndex = currentState.promptsHistory.findIndex(item => item.text.trim() === cleanText);
+  
+  if (existingIndex > -1) {
+    // If it exists, update its timestamp and source, and move it to the top (unless pinned)
+    const existingItem = currentState.promptsHistory.splice(existingIndex, 1)[0];
+    existingItem.timestamp = Date.now();
+    existingItem.source = source;
+    currentState.promptsHistory.unshift(existingItem);
+  } else {
+    // Add new item
+    currentState.promptsHistory.unshift({
+      id: Date.now() + Math.random(),
+      text: cleanText,
+      timestamp: Date.now(),
+      pinned: false,
+      source: source
+    });
+  }
+  
+  // Keep max 100 entries
+  if (currentState.promptsHistory.length > 100) {
+    currentState.promptsHistory.pop();
+  }
+  
+  saveConfig();
+  updateWorkspaceWidget();
+  if (currentState.activeTab === 'prompts-history') {
+    renderPromptsHistory();
+  }
+}
+
+function renderPromptsHistory() {
+  const searchInput = document.getElementById('history-search');
+  const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+  
+  const pinnedList = document.getElementById('pinned-history-list');
+  const recentList = document.getElementById('recent-history-list');
+  
+  if (!pinnedList || !recentList) return;
+  
+  pinnedList.innerHTML = '';
+  recentList.innerHTML = '';
+  
+  const history = currentState.promptsHistory || [];
+  const filtered = query ? history.filter(item => item.text.toLowerCase().includes(query)) : history;
+  
+  const pinnedItems = filtered.filter(item => item.pinned);
+  const recentItems = filtered.filter(item => !item.pinned);
+  
+  if (pinnedItems.length === 0) {
+    pinnedList.innerHTML = '<div class="no-history-msg">No pinned prompts. Pin important prompts to keep them at the top!</div>';
+  } else {
+    pinnedItems.forEach(item => {
+      pinnedList.appendChild(createHistoryItemElement(item));
+    });
+  }
+  
+  if (recentItems.length === 0) {
+    recentList.innerHTML = '<div class="no-history-msg">No recent prompts found.</div>';
+  } else {
+    recentItems.forEach(item => {
+      recentList.appendChild(createHistoryItemElement(item));
+    });
+  }
+}
+
+function createHistoryItemElement(item) {
+  const el = document.createElement('div');
+  el.className = `history-item ${item.pinned ? 'pinned' : ''}`;
+  
+  // Format timestamp
+  const date = new Date(item.timestamp);
+  const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' - ' + date.toLocaleDateString();
+  
+  // Source color styling classes or badges
+  const sourceClass = item.source.toLowerCase().replace('.', '').replace(' ', '');
+  
+  el.innerHTML = `
+    <div class="history-item-header">
+      <span class="history-badge ${sourceClass}-color-bg">${item.source}</span>
+      <span class="history-time">${timeStr}</span>
+    </div>
+    <div class="history-item-body">${escapeHtml(item.text)}</div>
+    <div class="history-item-actions">
+      <button class="history-action-btn btn-pin ${item.pinned ? 'active' : ''}" title="${item.pinned ? 'Unpin prompt' : 'Pin prompt'}">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+          <circle cx="12" cy="10" r="3"></circle>
+        </svg>
+      </button>
+      <button class="history-action-btn btn-copy" title="Copy to clipboard">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        </svg>
+      </button>
+      <button class="history-action-btn btn-use" title="Load into Broadcast bar">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </button>
+    </div>
+  `;
+  
+  // Attach listeners
+  el.querySelector('.btn-pin').addEventListener('click', (e) => {
+    e.stopPropagation();
+    item.pinned = !item.pinned;
+    saveConfig();
+    updateWorkspaceWidget();
+    renderPromptsHistory();
+  });
+  
+  el.querySelector('.btn-copy').addEventListener('click', (e) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(item.text);
+    
+    const copyBtn = el.querySelector('.btn-copy');
+    copyBtn.innerHTML = `
+      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="var(--success-color)" stroke-width="2.5">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+    `;
+    setTimeout(() => {
+      copyBtn.innerHTML = `
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        </svg>
+      `;
+    }, 1500);
+  });
+  
+  el.querySelector('.btn-use').addEventListener('click', (e) => {
+    e.stopPropagation();
+    switchTab('dashboard');
+    const input = document.getElementById('broadcast-input');
+    if (input) {
+      input.value = item.text;
+      input.focus();
+      input.dispatchEvent(new Event('input'));
+    }
+  });
+  
+  // Clicking the item body loads it into the broadcast bar
+  el.querySelector('.history-item-body').addEventListener('click', () => {
+    switchTab('dashboard');
+    const input = document.getElementById('broadcast-input');
+    if (input) {
+      input.value = item.text;
+      input.focus();
+      input.dispatchEvent(new Event('input'));
+    }
+  });
+  
+  return el;
+}
+
+function escapeHtml(text) {
+  const map = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  };
+  return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+}
+
+/* =================================================================
+   FEATURE: Workspace Monitor Widget updater
+================================================================= */
+function updateWorkspaceWidget() {
+  const activeAisEl = document.getElementById('widget-active-ais');
+  const totalPromptsEl = document.getElementById('widget-total-prompts');
+  const pinnedListEl = document.getElementById('widget-pinned-list');
+  
+  if (!activeAisEl && !totalPromptsEl && !pinnedListEl) return;
+  
+  // Calculate active AI count (excluding utility tabs like google or you widget itself)
+  const models = Object.keys(currentState.enabledModels).filter(m => m !== 'google' && m !== 'you');
+  const activeCount = models.filter(m => currentState.enabledModels[m]).length;
+  
+  if (activeAisEl) {
+    activeAisEl.textContent = `${activeCount} / ${models.length}`;
+  }
+  
+  const history = currentState.promptsHistory || [];
+  if (totalPromptsEl) {
+    totalPromptsEl.textContent = history.length;
+  }
+  
+  if (pinnedListEl) {
+    pinnedListEl.innerHTML = '';
+    const pinnedItems = history.filter(item => item.pinned).slice(0, 3);
+    
+    if (pinnedItems.length === 0) {
+      pinnedListEl.innerHTML = '<div style="font-size: 11px; color: var(--text-dark); font-style: italic;">No pinned prompts yet.</div>';
+    } else {
+      pinnedItems.forEach(item => {
+        const itemEl = document.createElement('div');
+        itemEl.style.display = 'flex';
+        itemEl.style.justifyContent = 'space-between';
+        itemEl.style.alignItems = 'center';
+        itemEl.style.background = 'rgba(255,255,255,0.01)';
+        itemEl.style.border = '1px solid rgba(255,255,255,0.03)';
+        itemEl.style.padding = '5px 8px';
+        itemEl.style.borderRadius = '6px';
+        itemEl.style.cursor = 'pointer';
+        itemEl.style.transition = 'background 0.12s';
+        
+        const textPreview = item.text.length > 30 ? item.text.substring(0, 30) + '...' : item.text;
+        
+        itemEl.innerHTML = `
+          <span style="font-size: 11.5px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1;" title="${escapeHtml(item.text)}">${escapeHtml(textPreview)}</span>
+          <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="var(--text-dark)" stroke-width="2.5" style="margin-left: 6px;"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        `;
+        
+        itemEl.addEventListener('click', () => {
+          switchTab('dashboard');
+          const input = document.getElementById('broadcast-input');
+          if (input) {
+            input.value = item.text;
+            input.focus();
+            input.dispatchEvent(new Event('input'));
+          }
+        });
+        
+        // Hover effects in JS
+        itemEl.addEventListener('mouseenter', () => {
+          itemEl.style.background = 'rgba(255,255,255,0.04)';
+          itemEl.querySelector('svg').style.stroke = 'var(--accent-color)';
+        });
+        itemEl.addEventListener('mouseleave', () => {
+          itemEl.style.background = 'rgba(255,255,255,0.01)';
+          itemEl.querySelector('svg').style.stroke = 'var(--text-dark)';
+        });
+        
+        pinnedListEl.appendChild(itemEl);
+      });
+    }
+  }
+}
+
