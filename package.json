@@ -18,11 +18,13 @@
       "output": "dist"
     },
     "win": {
+      "icon": "assets/icon.png",
       "target": [
         "nsis"
       ]
     },
     "mac": {
+      "icon": "assets/icon.png",
       "target": [
         "dmg",
         "pkg"
@@ -34,6 +36,7 @@
       "style.css",
       "renderer.js",
       "injection-script.js",
+      "assets/**/*",
       "package.json"
     ]
   }

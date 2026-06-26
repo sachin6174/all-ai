@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="assets/icon.png">
 </head>
 <body>
   <div class="app-container">
@@ -16,10 +17,25 @@
     <aside class="sidebar">
       <div class="sidebar-brand">
         <div class="brand-logo">
-          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-            <polyline points="2 17 12 22 22 17"></polyline>
-            <polyline points="2 12 17 22 12"></polyline>
+          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="url(#logo-grad)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <defs>
+              <linearGradient id="logo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#a5a6ff" />
+                <stop offset="100%" stop-color="#5b5df8" />
+              </linearGradient>
+            </defs>
+            <!-- Outer glowing network rings -->
+            <circle cx="12" cy="12" r="9" stroke="url(#logo-grad)" stroke-width="1.2" stroke-dasharray="3 2" opacity="0.8" />
+            <ellipse cx="12" cy="12" rx="9" ry="3.5" transform="rotate(35 12 12)" />
+            <ellipse cx="12" cy="12" rx="9" ry="3.5" transform="rotate(-35 12 12)" />
+            <!-- Glowing connected nodes -->
+            <circle cx="12" cy="3" r="1.5" fill="#ffffff" />
+            <circle cx="12" cy="21" r="1.5" fill="#ffffff" />
+            <circle cx="4.6" cy="6.8" r="1.5" fill="#ffffff" />
+            <circle cx="19.4" cy="17.2" r="1.5" fill="#ffffff" />
+            <circle cx="4.6" cy="17.2" r="1.5" fill="#ffffff" />
+            <circle cx="19.4" cy="6.8" r="1.5" fill="#ffffff" />
+            <circle cx="12" cy="12" r="2.5" fill="#ffffff" />
           </svg>
         </div>
         <span class="brand-name">OmniAI</span>

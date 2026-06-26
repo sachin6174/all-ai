@@ -36,6 +36,7 @@ function createWindow() {
     minHeight: 700,
     title: 'OmniAI Chat',
     backgroundColor: '#0a0b10',
+    icon: path.join(__dirname, 'assets/icon.png'),
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
