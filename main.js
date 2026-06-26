@@ -29,6 +29,8 @@ function configureSessions() {
 }
 
 function createWindow() {
+  const isMac = process.platform === 'darwin';
+
   mainWindow = new BrowserWindow({
     width: 1400,
     height: 900,
@@ -37,13 +39,14 @@ function createWindow() {
     title: 'OmniAI Chat',
     backgroundColor: '#0a0b10',
     icon: path.join(__dirname, 'assets/icon.png'),
+    titleBarStyle: isMac ? 'hiddenInset' : 'default',
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
       webviewTag: true,
       devTools: true
     },
-    frame: true // Standard window frame for easy minimize/maximize/close
+    frame: isMac ? false : true // Standard window frame for easy minimize/maximize/close
   });
 
   mainWindow.loadFile('index.html');

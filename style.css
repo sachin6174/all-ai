@@ -972,7 +972,37 @@ webview {
 .sidebar.collapsed .nav-label,
 .sidebar.collapsed .nav-divider,
 .sidebar.collapsed .sidebar-search-wrap,
-.sidebar.collapsed .sidebar-footer-icons { opacity: 0; pointer-events: none; width: 0; overflow: hidden; }
+.sidebar.collapsed .sidebar-footer-icons,
+.sidebar.collapsed .nav-status-dot,
+.sidebar.collapsed .sidebar-toggle-check { opacity: 0; pointer-events: none; width: 0; overflow: hidden; display: none !important; }
+
+.sidebar.collapsed .sidebar-brand {
+  padding: 16px 0;
+  justify-content: center;
+}
+
+.platform-mac .sidebar.collapsed .sidebar-brand {
+  padding-top: 40px;
+  padding-bottom: 16px;
+}
+
+.sidebar.collapsed .brand-logo {
+  display: none !important;
+}
+
+.sidebar.collapsed #sidebar-collapse-btn {
+  margin: 0 auto;
+  opacity: 0.8;
+}
+
+.sidebar.collapsed .nav-item {
+  justify-content: center;
+  padding: 11px 0;
+}
+
+.sidebar.collapsed .sidebar-footer {
+  padding: 12px 0;
+}
 
 .sidebar.collapsed #sidebar-collapse-btn svg { transform: rotate(180deg); }
 
@@ -1093,3 +1123,19 @@ webview {
   100% { box-shadow: none; }
 }
 .broadcast-bar-container.flash { animation: broadcastFlash 0.7s ease forwards; }
+
+/* =========================================================
+   FEATURE: macOS Window Framing & Layout Adjustments
+   ========================================================= */
+
+.platform-mac .sidebar-brand {
+  padding-top: 38px;
+  -webkit-app-region: drag;
+}
+
+.platform-mac #sidebar-collapse-btn,
+.platform-mac .brand-logo,
+.platform-mac .brand-name {
+  -webkit-app-region: no-drag;
+}
+

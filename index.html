@@ -10,6 +10,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" href="assets/icon.png">
+  <script>
+    if (typeof process !== 'undefined' && process.platform === 'darwin') {
+      document.documentElement.classList.add('platform-mac');
+    }
+  </script>
 </head>
 <body>
   <div class="app-container">
