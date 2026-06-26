@@ -183,13 +183,17 @@
           <span class="nav-status-dot active" id="dot-pi"></span>
         </button>
 
-        <!-- You.com -->
+        <!-- Workspace Monitor (formerly You.com) -->
         <button class="nav-item" data-tab="you">
-          <span class="nav-icon you-color">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8A6 6 0 0 1 6 8M12 2v20"></path></svg>
+          <span class="nav-icon" style="color: var(--accent-color);">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+              <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+              <line x1="6" y1="6" x2="6.01" y2="6"></line>
+              <line x1="6" y1="18" x2="6.01" y2="18"></line>
+            </svg>
           </span>
-          <span class="nav-label">You.com</span>
-          <span class="nav-status-dot active" id="dot-you"></span>
+          <span class="nav-label">Workspace Monitor</span>
         </button>
 
         <!-- Poe -->
@@ -912,7 +916,7 @@
             <label class="toggle-control"><input type="checkbox" id="toggle-perplexity" checked><span class="toggle-label">Perplexity AI</span></label>
             <label class="toggle-control"><input type="checkbox" id="toggle-lechat" checked><span class="toggle-label">Mistral Le Chat</span></label>
             <label class="toggle-control"><input type="checkbox" id="toggle-pi" checked><span class="toggle-label">Inflection Pi</span></label>
-            <label class="toggle-control"><input type="checkbox" id="toggle-you" checked><span class="toggle-label">You.com</span></label>
+            <label class="toggle-control"><input type="checkbox" id="toggle-you" checked><span class="toggle-label">Workspace Monitor</span></label>
             <label class="toggle-control"><input type="checkbox" id="toggle-poe" checked><span class="toggle-label">Quora Poe</span></label>
             <label class="toggle-control"><input type="checkbox" id="toggle-characterai" checked><span class="toggle-label">Character.AI</span></label>
             <label class="toggle-control"><input type="checkbox" id="toggle-metaai" checked><span class="toggle-label">Meta AI</span></label>
@@ -975,7 +979,7 @@
         <div class="settings-section">
           <h2>Help &amp; Info</h2>
           <div class="info-card">
-            <p><strong>OmniAI Chat Client v1.1.0</strong></p>
+            <p><strong>OmniAI Chat Client v1.1.1</strong></p>
             <p>We use a unified shared cookie partition. This means if you log in once using the <strong>Google Login</strong> tab, your account credentials are automatically shared with supported portals for single-sign-on.</p>
             <p>Press <code>Ctrl + Enter</code> to run the global broadcast prompt across all active AI models.</p>
           </div>

@@ -59,7 +59,14 @@ function loadConfig() {
   if (savedState) {
     try {
       const parsed = JSON.parse(savedState);
+      
+      // Merge enabledModels object to prevent newly added models from being missing/undefined
+      const loadedEnabledModels = parsed.enabledModels || {};
+      delete parsed.enabledModels;
+      
       currentState = { ...currentState, ...parsed };
+      currentState.enabledModels = { ...currentState.enabledModels, ...loadedEnabledModels };
+      
       if (!currentState.promptsHistory) {
         currentState.promptsHistory = [];
       }
