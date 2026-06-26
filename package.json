@@ -1,6 +1,6 @@
 {
   "name": "omni-ai-chat",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Multi-platform desktop client integrating multiple AI chats with global broadcast.",
   "main": "main.js",
   "scripts": {
@@ -21,7 +21,7 @@
       "output": "dist"
     },
     "win": {
-      "icon": "assets/icon.png",
+      "icon": "assets/icon.ico",
       "target": [
         "nsis"
       ]
