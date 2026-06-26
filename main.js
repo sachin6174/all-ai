@@ -30,6 +30,10 @@ function configureSessions() {
 
 function createWindow() {
   const isMac = process.platform === 'darwin';
+  const isWin = process.platform === 'win32';
+  const iconPath = isWin
+    ? (app.isPackaged ? undefined : path.join(__dirname, 'assets/icon.ico'))
+    : path.join(__dirname, 'assets/icon.png');
 
   mainWindow = new BrowserWindow({
     width: 1400,
@@ -38,7 +42,7 @@ function createWindow() {
     minHeight: 700,
     title: 'OmniAI Chat',
     backgroundColor: '#0a0b10',
-    icon: path.join(__dirname, process.platform === 'win32' ? 'assets/icon.ico' : 'assets/icon.png'),
+    icon: iconPath,
     titleBarStyle: isMac ? 'hiddenInset' : 'default',
     webPreferences: {
       nodeIntegration: true,
@@ -61,6 +65,9 @@ function createWindow() {
 
 // Initialize sessions and app
 app.whenReady().then(() => {
+  if (process.platform === 'win32') {
+    app.setAppUserModelId('com.omniaichat.app');
+  }
   configureSessions();
   createWindow();
 
