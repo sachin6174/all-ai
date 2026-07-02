@@ -1,0 +1,244 @@
+{
+  "sites": [
+    {
+      "id": "gemini",
+      "name": "Gemini",
+      "url": "https://gemini.google.com/app",
+      "icon": "✦",
+      "color": "#4285f4",
+      "category": "ai",
+      "enabled": true,
+      "trayLabel": "Gemini"
+    },
+    {
+      "id": "chatgpt",
+      "name": "ChatGPT",
+      "url": "https://chatgpt.com/",
+      "icon": "🌐",
+      "color": "#10a37f",
+      "category": "ai",
+      "enabled": true,
+      "trayLabel": "ChatGPT"
+    },
+    {
+      "id": "zai",
+      "name": "Z AI",
+      "url": "https://chat.z.ai/",
+      "icon": "Z",
+      "color": "#ffffff",
+      "category": "ai",
+      "enabled": true,
+      "trayLabel": "Z AI"
+    },
+    {
+      "id": "claude",
+      "name": "Claude",
+      "url": "https://claude.ai/",
+      "icon": "⊕",
+      "color": "#d97706",
+      "category": "ai",
+      "enabled": true,
+      "trayLabel": "Claude"
+    },
+    {
+      "id": "grok",
+      "name": "Grok",
+      "url": "https://grok.com/",
+      "icon": "⚡",
+      "color": "#1da1f2",
+      "category": "ai",
+      "enabled": true,
+      "trayLabel": "Grok"
+    },
+    {
+      "id": "deepseek",
+      "name": "DeepSeek",
+      "url": "https://chat.deepseek.com/",
+      "icon": "🔍",
+      "color": "#4f46e5",
+      "category": "ai",
+      "enabled": true,
+      "trayLabel": "DeepSeek"
+    },
+    {
+      "id": "qwen",
+      "name": "Qwen",
+      "url": "https://chat.qwenlm.ai/",
+      "icon": "Q",
+      "color": "#7c3aed",
+      "category": "ai",
+      "enabled": true,
+      "trayLabel": "Qwen"
+    },
+    {
+      "id": "copilot",
+      "name": "Copilot",
+      "url": "https://copilot.microsoft.com/",
+      "icon": "⊞",
+      "color": "#0078d4",
+      "category": "ai",
+      "enabled": true,
+      "trayLabel": "Copilot"
+    },
+    {
+      "id": "perplexity",
+      "name": "Perplexity",
+      "url": "https://www.perplexity.ai/",
+      "icon": "🔎",
+      "color": "#20b2aa",
+      "category": "ai",
+      "enabled": true,
+      "trayLabel": "Perplexity"
+    },
+    {
+      "id": "lechat",
+      "name": "Le Chat",
+      "url": "https://chat.mistral.ai/",
+      "icon": "💬",
+      "color": "#ff7000",
+      "category": "ai",
+      "enabled": true,
+      "trayLabel": "Le Chat"
+    },
+    {
+      "id": "pi",
+      "name": "Pi",
+      "url": "https://pi.ai/",
+      "icon": "π",
+      "color": "#a3e635",
+      "category": "ai",
+      "enabled": true,
+      "trayLabel": "Pi"
+    },
+    {
+      "id": "poe",
+      "name": "Poe",
+      "url": "https://poe.com/",
+      "icon": "◉",
+      "color": "#6366f1",
+      "category": "ai",
+      "enabled": true,
+      "trayLabel": "Poe"
+    },
+    {
+      "id": "characterai",
+      "name": "Character.AI",
+      "url": "https://character.ai/",
+      "icon": "👥",
+      "color": "#ec4899",
+      "category": "ai",
+      "enabled": true,
+      "trayLabel": "C.AI"
+    },
+    {
+      "id": "metaai",
+      "name": "Meta AI",
+      "url": "https://www.meta.ai/",
+      "icon": "∞",
+      "color": "#1877f2",
+      "category": "ai",
+      "enabled": true,
+      "trayLabel": "Meta"
+    },
+    {
+      "id": "kimi",
+      "name": "Kimi",
+      "url": "https://kimi.moonshot.cn/",
+      "icon": "📖",
+      "color": "#06b6d4",
+      "category": "ai",
+      "enabled": true,
+      "trayLabel": "Kimi"
+    },
+    {
+      "id": "jasper",
+      "name": "Jasper Chat",
+      "url": "https://app.jasper.ai/",
+      "icon": "◆",
+      "color": "#f43f5e",
+      "category": "ai",
+      "enabled": true,
+      "trayLabel": "Jasper"
+    },
+    {
+      "id": "phind",
+      "name": "Phind",
+      "url": "https://www.phind.com/",
+      "icon": "<>",
+      "color": "#8b5cf6",
+      "category": "ai",
+      "enabled": true,
+      "trayLabel": "Phind"
+    },
+    {
+      "id": "huggingchat",
+      "name": "Hugging Chat",
+      "url": "https://huggingface.co/chat",
+      "icon": "🤗",
+      "color": "#fbbf24",
+      "category": "ai",
+      "enabled": true,
+      "trayLabel": "Hugging"
+    },
+    {
+      "id": "duckchat",
+      "name": "Duck AI Chat",
+      "url": "https://duckduckgo.com/chat",
+      "icon": "🦆",
+      "color": "#de5833",
+      "category": "ai",
+      "enabled": true,
+      "trayLabel": "Duck"
+    },
+    {
+      "id": "groq",
+      "name": "Groq Chat",
+      "url": "https://chat.groq.com/",
+      "icon": "⚡",
+      "color": "#f97316",
+      "category": "ai",
+      "enabled": true,
+      "trayLabel": "Groq"
+    },
+    {
+      "id": "blackbox",
+      "name": "Blackbox AI",
+      "url": "https://www.blackbox.ai/",
+      "icon": "■",
+      "color": "#6b7280",
+      "category": "ai",
+      "enabled": true,
+      "trayLabel": "B.Box"
+    },
+    {
+      "id": "cohere",
+      "name": "Cohere Coral",
+      "url": "https://coral.cohere.com/",
+      "icon": "◇",
+      "color": "#39d353",
+      "category": "ai",
+      "enabled": true,
+      "trayLabel": "Cohere"
+    },
+    {
+      "id": "openrouter",
+      "name": "OpenRouter Chat",
+      "url": "https://openrouter.ai/chat",
+      "icon": "⊙",
+      "color": "#6d28d9",
+      "category": "ai",
+      "enabled": true,
+      "trayLabel": "O.Router"
+    },
+    {
+      "id": "google",
+      "name": "Google Login",
+      "url": "https://accounts.google.com/",
+      "icon": "G",
+      "color": "#4285f4",
+      "category": "utility",
+      "enabled": true,
+      "trayLabel": "Google"
+    }
+  ]
+}

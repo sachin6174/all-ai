@@ -2,6 +2,11 @@ const { ipcRenderer } = require('electron');
 const fs = require('fs');
 const path = require('path');
 
+// ===================================================================
+// Sites Configuration (loaded from sites.json via IPC)
+// ===================================================================
+let sitesConfig = []; // Populated at startup from sites.json
+
 // State Management
 let currentState = {
   activeTab: 'dashboard',
@@ -11,32 +16,7 @@ let currentState = {
   themeGlow: 'rgba(91, 93, 248, 0.35)',
   broadcastHistory: [],
   promptsHistory: [],
-  enabledModels: {
-    gemini: true,
-    chatgpt: true,
-    zai: true,
-    claude: true,
-    grok: true,
-    deepseek: true,
-    qwen: true,
-    copilot: true,
-    perplexity: true,
-    lechat: true,
-    pi: true,
-    you: true,
-    poe: true,
-    characterai: true,
-    metaai: true,
-    kimi: true,
-    jasper: true,
-    phind: true,
-    huggingchat: true,
-    duckchat: true,
-    groq: true,
-    blackbox: true,
-    cohere: true,
-    openrouter: true
-  }
+  enabledModels: {}
 };
 
 let historyIndex = -1;
@@ -52,6 +32,293 @@ const broadcastStatus = document.getElementById('broadcast-status');
 const activeIndicatorsTray = document.getElementById('active-indicators-tray');
 const mainWorkspace = document.querySelector('.main-workspace');
 const geminiAuthUserSelect = document.getElementById('select-gemini-authuser');
+
+
+// ===================================================================
+// Dynamic UI Generation from sites.json
+// ===================================================================
+
+// Build all dynamic DOM elements from the sites config array
+function buildDynamicUI(sites) {
+  buildSidebarNav(sites);
+  buildWebviewCards(sites);
+  buildSettingsToggles(sites);
+  buildSessionResets(sites);
+  buildTrayBadges(sites);
+}
+
+// 1. Build sidebar nav items
+function buildSidebarNav(sites) {
+  const aiContainer = document.getElementById('dynamic-nav-items');
+  const utilContainer = document.getElementById('dynamic-utility-nav-items');
+  if (aiContainer) aiContainer.innerHTML = '';
+  if (utilContainer) utilContainer.innerHTML = '';
+
+  sites.forEach(site => {
+    const btn = document.createElement('button');
+    btn.className = 'nav-item';
+    btn.setAttribute('data-tab', site.id);
+    btn.innerHTML = `
+      <span class="nav-icon" style="color: ${site.color}; font-size: 18px; width: 20px; text-align: center;">${site.icon}</span>
+      <span class="nav-label">${site.name}</span>
+      <span class="nav-status-dot" id="dot-${site.id}"></span>
+    `;
+
+    // Add sidebar toggle checkbox for AI sites (not utilities)
+    if (site.category === 'ai') {
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.className = 'sidebar-toggle-check';
+      checkbox.title = 'Show/hide on Dashboard';
+      checkbox.checked = currentState.enabledModels[site.id] !== false;
+      
+      checkbox.addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+
+      checkbox.addEventListener('change', (e) => {
+        const isChecked = e.target.checked;
+        toggleModelEnabled(site.id, isChecked);
+      });
+
+      btn.appendChild(checkbox);
+    }
+
+    // Click to switch tab
+    btn.addEventListener('click', () => {
+      switchTab(site.id);
+    });
+
+    if (site.category === 'utility') {
+      if (utilContainer) utilContainer.appendChild(btn);
+    } else {
+      if (aiContainer) aiContainer.appendChild(btn);
+    }
+  });
+}
+
+// 2. Build webview cards
+function buildWebviewCards(sites) {
+  // Preserve the Workspace Monitor widget (card-you)
+  const widgetCard = document.getElementById('card-you');
+  
+  // Remove all existing dynamic cards (everything except the widget)
+  const existingCards = webviewContainer.querySelectorAll('.webview-card:not(#card-you)');
+  existingCards.forEach(card => card.remove());
+
+  sites.forEach(site => {
+    const card = document.createElement('div');
+    card.className = `webview-card active${site.category === 'utility' ? ' card-utility' : ''}`;
+    card.id = `card-${site.id}`;
+    card.setAttribute('data-model', site.id);
+
+    // Card header with action buttons
+    const isUtility = site.category === 'utility';
+    const actionButtons = `
+      <button class="action-btn btn-back" title="Back"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+      <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+      <button class="action-btn btn-reload" title="Reload"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></button>
+      <button class="action-btn btn-focus" title="Focus Single Tab"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg></button>
+      <button class="action-btn btn-zoom-in" title="Zoom In"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
+      <button class="action-btn btn-zoom-out" title="Zoom Out"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
+    `;
+
+    // Determine the src URL (special case: Gemini with authuser)
+    let srcUrl = site.url;
+    if (site.id === 'gemini') {
+      srcUrl = `https://gemini.google.com/app?authuser=${currentState.geminiAuthUser}`;
+    }
+
+    card.innerHTML = `
+      <div class="card-header">
+        <div class="model-info"><span class="status-indicator ready"></span><span class="model-name">${site.name}</span></div>
+        <div class="card-actions">${actionButtons}</div>
+      </div>
+      <div class="webview-wrapper">
+        <webview allowpopups id="wv-${site.id}" src="${srcUrl}" partition="persist:omniai_session"></webview>
+        <div class="loader-overlay"><div class="spinner"></div><span>Connecting to ${site.name}...</span></div>
+      </div>
+    `;
+
+    // Insert before the widget card (so widget stays at end)
+    if (widgetCard) {
+      webviewContainer.insertBefore(card, widgetCard);
+    } else {
+      webviewContainer.appendChild(card);
+    }
+  });
+}
+
+// 3. Build settings toggles
+function buildSettingsToggles(sites) {
+  const container = document.getElementById('dynamic-service-toggles');
+  if (!container) return;
+  container.innerHTML = '';
+
+  // Only AI sites get toggles
+  sites.filter(s => s.category === 'ai').forEach(site => {
+    const label = document.createElement('label');
+    label.className = 'toggle-control';
+    label.innerHTML = `
+      <input type="checkbox" id="toggle-${site.id}" ${currentState.enabledModels[site.id] !== false ? 'checked' : ''}>
+      <span class="toggle-label">${site.name}</span>
+    `;
+    
+    const checkbox = label.querySelector('input');
+    checkbox.addEventListener('change', (e) => {
+      toggleModelEnabled(site.id, e.target.checked);
+    });
+
+    container.appendChild(label);
+  });
+}
+
+// 4. Build session reset buttons
+function buildSessionResets(sites) {
+  const container = document.getElementById('dynamic-session-resets');
+  if (!container) return;
+  container.innerHTML = '';
+
+  sites.forEach(site => {
+    const row = document.createElement('div');
+    row.className = 'session-row';
+
+    // Extract origin from URL
+    let origin = '';
+    try {
+      const u = new URL(site.url);
+      origin = u.origin;
+    } catch (e) {
+      origin = site.url;
+    }
+
+    row.innerHTML = `
+      <span>${site.name}</span>
+      <button class="btn btn-danger" data-clear="${site.id}" data-origin="${origin}">Reset ${site.name}</button>
+    `;
+    container.appendChild(row);
+  });
+
+  // Add "Reset All" row
+  const allRow = document.createElement('div');
+  allRow.className = 'session-row';
+  allRow.innerHTML = `
+    <span><strong>Reset All Sessions</strong></span>
+    <button class="btn btn-danger" data-clear="all">Reset All Sessions</button>
+  `;
+  container.appendChild(allRow);
+
+  // Attach event listeners to the newly created buttons
+  container.querySelectorAll('.btn-danger[data-clear]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const clearTarget = btn.getAttribute('data-clear');
+      const origin = btn.getAttribute('data-origin');
+      const originalText = btn.textContent;
+      
+      let confirmMsg = '';
+      if (clearTarget === 'all') {
+        confirmMsg = 'Are you sure you want to reset ALL sessions and caches? This logs you out of everything.';
+      } else {
+        confirmMsg = `Are you sure you want to clear storage and log out of ${originalText.replace('Reset ', '')}?`;
+      }
+
+      const confirmReset = confirm(confirmMsg);
+      if (confirmReset) {
+        btn.disabled = true;
+        btn.textContent = 'Clearing...';
+        
+        let result;
+        if (clearTarget === 'all') {
+          result = await ipcRenderer.invoke('clear-session', { partition: 'persist:omniai_session' });
+        } else {
+          result = await ipcRenderer.invoke('clear-session', { 
+            partition: 'persist:omniai_session', 
+            origin: origin 
+          });
+        }
+        
+        if (result && result.success) {
+          alert(`Session cleared successfully. Reloading view...`);
+          if (clearTarget === 'all') {
+            document.querySelectorAll('webview').forEach(wv => wv.reload());
+          } else {
+            const wv = document.getElementById(`wv-${clearTarget}`);
+            if (wv) wv.reload();
+          }
+        } else {
+          alert(`Failed to clear session: ${result.error || 'Unknown error'}`);
+        }
+        
+        btn.disabled = false;
+        btn.textContent = originalText;
+      }
+    });
+  });
+}
+
+// 5. Build broadcast tray badges
+function buildTrayBadges(sites) {
+  if (!activeIndicatorsTray) return;
+  activeIndicatorsTray.innerHTML = '';
+
+  // Only AI sites get badges
+  sites.filter(s => s.category === 'ai').forEach(site => {
+    const badge = document.createElement('span');
+    badge.className = `tray-badge${currentState.enabledModels[site.id] !== false ? ' active' : ''}`;
+    badge.setAttribute('data-indicator', site.id);
+    badge.textContent = site.trayLabel;
+    activeIndicatorsTray.appendChild(badge);
+  });
+}
+
+
+// ===================================================================
+// Unified toggle for enabling/disabling a model
+// ===================================================================
+function toggleModelEnabled(modelId, isEnabled) {
+  currentState.enabledModels[modelId] = isEnabled;
+
+  // Update Card visibility
+  const card = document.getElementById(`card-${modelId}`);
+  if (card && !card.classList.contains('card-utility')) {
+    if (isEnabled) card.classList.remove('card-disabled');
+    else card.classList.add('card-disabled');
+  }
+
+  // Update Nav status dot
+  const dot = document.getElementById(`dot-${modelId}`);
+  const navBtn = document.querySelector(`.nav-item[data-tab="${modelId}"]`);
+  const sidebarCheck = navBtn ? navBtn.querySelector('.sidebar-toggle-check') : null;
+
+  if (isEnabled) {
+    if (dot) dot.classList.add('active');
+    if (navBtn) navBtn.style.opacity = '1';
+    if (sidebarCheck) sidebarCheck.checked = true;
+  } else {
+    if (dot) dot.classList.remove('active');
+    if (navBtn) navBtn.style.opacity = '0.5';
+    if (sidebarCheck) sidebarCheck.checked = false;
+  }
+
+  // Update Settings toggle
+  const settingsCheckbox = document.getElementById(`toggle-${modelId}`);
+  if (settingsCheckbox) settingsCheckbox.checked = isEnabled;
+
+  // Update Tray Badge
+  const trayBadge = document.querySelector(`.tray-badge[data-indicator="${modelId}"]`);
+  if (trayBadge) {
+    if (isEnabled) trayBadge.classList.add('active');
+    else trayBadge.classList.remove('active');
+  }
+
+  saveConfig();
+  updateWorkspaceWidget();
+}
+
+
+// ===================================================================
+// Config persistence
+// ===================================================================
 
 // Load configurations from local storage
 function loadConfig() {
@@ -89,7 +356,23 @@ function saveConfig() {
   }));
 }
 
+// Populate the default enabledModels from sites config
+function initEnabledModelsFromSites(sites) {
+  // Create defaults from sites.json for any model not yet in saved state
+  sites.forEach(site => {
+    if (currentState.enabledModels[site.id] === undefined) {
+      currentState.enabledModels[site.id] = site.enabled;
+    }
+  });
+
+  // Always set workspace monitor and special entries
+  currentState.enabledModels['you'] = true;
+}
+
+
+// ===================================================================
 // Initialize the application UI based on current configurations
+// ===================================================================
 function initUI() {
   // 0. Apply Theme Accent & Glow
   document.documentElement.style.setProperty('--accent-color', currentState.themeAccent);
@@ -103,9 +386,6 @@ function initUI() {
       btn.classList.remove('active');
     }
   });
-
-  // Inject sidebar toggles dynamically
-  injectSidebarToggles();
 
   // 1. Setup Layout
   updateLayoutClass(currentState.layout);
@@ -128,48 +408,26 @@ function initUI() {
     geminiAuthUserSelect.value = currentState.geminiAuthUser;
   }
 
-  // 3. Setup Enabled AI Services
-  Object.keys(currentState.enabledModels).forEach(model => {
-    const isEnabled = currentState.enabledModels[model];
+  // 3. Apply enabled/disabled state to all dynamically created elements
+  sitesConfig.forEach(site => {
+    const isEnabled = currentState.enabledModels[site.id] !== false;
     
-    // Toggle card visibility (except for utilities like 'google')
-    const card = document.getElementById(`card-${model}`);
+    // Card visibility
+    const card = document.getElementById(`card-${site.id}`);
     if (card && !card.classList.contains('card-utility')) {
-      if (isEnabled) {
-        card.classList.remove('card-disabled');
-      } else {
-        card.classList.add('card-disabled');
-      }
+      if (isEnabled) card.classList.remove('card-disabled');
+      else card.classList.add('card-disabled');
     }
 
-    const navBtn = document.querySelector(`.nav-item[data-tab="${model}"]`);
-    const dot = document.getElementById(`dot-${model}`);
-    const sidebarCheck = navBtn ? navBtn.querySelector('.sidebar-toggle-check') : null;
-    
+    // Nav dot and opacity
+    const navBtn = document.querySelector(`.nav-item[data-tab="${site.id}"]`);
+    const dot = document.getElementById(`dot-${site.id}`);
     if (isEnabled) {
       if (dot) dot.classList.add('active');
       if (navBtn) navBtn.style.opacity = '1';
-      if (sidebarCheck) sidebarCheck.checked = true;
     } else {
       if (dot) dot.classList.remove('active');
       if (navBtn) navBtn.style.opacity = '0.5';
-      if (sidebarCheck) sidebarCheck.checked = false;
-    }
-
-    // Toggle checkbox state in settings
-    const checkbox = document.getElementById(`toggle-${model}`);
-    if (checkbox) {
-      checkbox.checked = isEnabled;
-    }
-
-    // Toggle broadcast active indicators
-    const trayBadge = document.querySelector(`.tray-badge[data-indicator="${model}"]`);
-    if (trayBadge) {
-      if (isEnabled) {
-        trayBadge.classList.add('active');
-      } else {
-        trayBadge.classList.remove('active');
-      }
     }
   });
 
@@ -180,62 +438,6 @@ function initUI() {
   updateWorkspaceWidget();
 }
 
-// Inject sidebar toggles dynamically on app start
-function injectSidebarToggles() {
-  document.querySelectorAll('.sidebar-nav .nav-item').forEach(navBtn => {
-    const tabId = navBtn.getAttribute('data-tab');
-    if (!tabId || ['dashboard', 'settings', 'google'].includes(tabId)) return;
-
-    if (navBtn.querySelector('.sidebar-toggle-check')) return;
-
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.className = 'sidebar-toggle-check';
-    checkbox.title = 'Show/hide on Dashboard';
-    checkbox.checked = currentState.enabledModels[tabId] !== false;
-    
-    checkbox.addEventListener('click', (e) => {
-      e.stopPropagation(); // Avoid switching tabs when checking/unchecking
-    });
-
-    checkbox.addEventListener('change', (e) => {
-      const isChecked = e.target.checked;
-      currentState.enabledModels[tabId] = isChecked;
-      
-      const card = document.getElementById(`card-${tabId}`);
-      if (card) {
-        if (isChecked) {
-          card.classList.remove('card-disabled');
-        } else {
-          card.classList.add('card-disabled');
-        }
-      }
-
-      const dot = document.getElementById(`dot-${tabId}`);
-      if (isChecked) {
-        if (dot) dot.classList.add('active');
-        navBtn.style.opacity = '1';
-      } else {
-        if (dot) dot.classList.remove('active');
-        navBtn.style.opacity = '0.5';
-      }
-
-      const settingsCheckbox = document.getElementById(`toggle-${tabId}`);
-      if (settingsCheckbox) settingsCheckbox.checked = isChecked;
-
-      const trayBadge = document.querySelector(`.tray-badge[data-indicator="${tabId}"]`);
-      if (trayBadge) {
-        if (isChecked) trayBadge.classList.add('active');
-        else trayBadge.classList.remove('active');
-      }
-
-      saveConfig();
-      updateWorkspaceWidget();
-    });
-
-    navBtn.appendChild(checkbox);
-  });
-}
 
 // Switch navigation tabs (Dashboard, Google, Gemini, ChatGPT, etc.)
 function switchTab(tabId) {
@@ -323,25 +525,17 @@ function updateLayoutClass(layoutName) {
 
 // Attach lifecycle events to all webviews in the app
 function setupWebviewEvents() {
-  const models = [
-    'gemini', 'chatgpt', 'zai', 'claude', 'grok', 'deepseek', 'qwen', 
-    'copilot', 'perplexity', 'lechat', 'pi', 'you', 'poe', 
-    'characterai', 'metaai', 'kimi', 'jasper', 
-    'phind', 'huggingchat', 'duckchat', 'groq', 'blackbox', 
-    'cohere', 'openrouter', 'google'
-  ];
-  
-  models.forEach(model => {
-    const webview = document.getElementById(`wv-${model}`);
-    const card = document.getElementById(`card-${model}`);
-    const loader = card.querySelector('.loader-overlay');
-    const dot = document.getElementById(`dot-${model}`);
+  sitesConfig.forEach(site => {
+    const webview = document.getElementById(`wv-${site.id}`);
+    const card = document.getElementById(`card-${site.id}`);
+    if (!webview || !card) return;
 
-    if (!webview) return;
+    const loader = card.querySelector('.loader-overlay');
+    const dot = document.getElementById(`dot-${site.id}`);
 
     // Loading started
     webview.addEventListener('did-start-loading', () => {
-      loader.classList.remove('hidden');
+      if (loader) loader.classList.remove('hidden');
       if (dot) {
         dot.className = 'nav-status-dot loading';
       }
@@ -349,7 +543,7 @@ function setupWebviewEvents() {
 
     // Loading stopped
     webview.addEventListener('did-stop-loading', () => {
-      loader.classList.add('hidden');
+      if (loader) loader.classList.add('hidden');
       if (dot) {
         dot.className = 'nav-status-dot active';
       }
@@ -357,28 +551,26 @@ function setupWebviewEvents() {
 
     // DOM Ready
     webview.addEventListener('dom-ready', () => {
-      loader.classList.add('hidden');
+      if (loader) loader.classList.add('hidden');
       if (dot) {
         dot.className = 'nav-status-dot active';
       }
       
-      // Inject text monitor script if not the Google Sign-in helper card
-      if (model !== 'google') {
+      // Inject text monitor script if not a utility card (like Google Sign-in)
+      if (site.category !== 'utility') {
         webview.executeJavaScript(guestMonitorScript)
-          .catch(err => console.error(`[${model}] Monitor injection failed:`, err));
+          .catch(err => console.error(`[${site.id}] Monitor injection failed:`, err));
       }
     });
 
     // Handle incoming prompts from console messages
-    if (model !== 'google') {
+    if (site.category !== 'utility') {
       webview.addEventListener('console-message', (e) => {
         const msg = e.message;
         if (msg && msg.startsWith('OMNIAI_PROMPT_SUBMIT:')) {
           const promptText = msg.substring('OMNIAI_PROMPT_SUBMIT:'.length).trim();
           if (promptText) {
-            // Capitalize model name for clean display badge
-            const prettySource = model.charAt(0).toUpperCase() + model.slice(1);
-            addPromptToHistory(promptText, prettySource);
+            addPromptToHistory(promptText, site.name);
           }
         }
       });
@@ -386,21 +578,19 @@ function setupWebviewEvents() {
 
     // Load failed
     webview.addEventListener('did-fail-load', (e) => {
-      console.error(`Webview load failed for ${model}:`, e);
-      loader.classList.remove('hidden');
-      const loaderText = loader.querySelector('span');
+      console.error(`Webview load failed for ${site.id}:`, e);
+      if (loader) loader.classList.remove('hidden');
+      const loaderText = loader ? loader.querySelector('span') : null;
       if (loaderText) {
-        loaderText.innerHTML = `Connection failed.<br><button class="btn" style="margin-top:8px;padding:4px 8px;font-size:11px;" onclick="document.getElementById('wv-${model}').reload()">Retry</button>`;
+        loaderText.innerHTML = `Connection failed.<br><button class="btn" style="margin-top:8px;padding:4px 8px;font-size:11px;" onclick="document.getElementById('wv-${site.id}').reload()">Retry</button>`;
       }
     });
-
-    // (The new-window event listener was removed so 'allowpopups' works natively)
 
     // Card Header Controls Setup
     const btnBack = card.querySelector('.btn-back');
     const btnForward = card.querySelector('.btn-forward');
     const btnReload = card.querySelector('.btn-reload');
-    const btnFocus = card.querySelector('.btn-focus'); // Might not exist on utility cards
+    const btnFocus = card.querySelector('.btn-focus');
 
     if (btnBack) {
       btnBack.addEventListener('click', () => {
@@ -422,9 +612,25 @@ function setupWebviewEvents() {
 
     if (btnFocus) {
       btnFocus.addEventListener('click', () => {
-        switchTab(model);
+        switchTab(site.id);
       });
     }
+
+    // Zoom controls
+    const wvId = webview.id;
+    webviewZoomLevels[wvId] = 1.0;
+
+    card.querySelector('.btn-zoom-in')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      webviewZoomLevels[wvId] = Math.min(3.0, (webviewZoomLevels[wvId] || 1.0) + 0.1);
+      webview.setZoomFactor(webviewZoomLevels[wvId]);
+    });
+
+    card.querySelector('.btn-zoom-out')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      webviewZoomLevels[wvId] = Math.max(0.3, (webviewZoomLevels[wvId] || 1.0) - 0.1);
+      webview.setZoomFactor(webviewZoomLevels[wvId]);
+    });
   });
 }
 
@@ -467,22 +673,23 @@ function executeBroadcast() {
 
   let activeCount = 0;
 
-  // Loop through and inject prompt into enabled models
-  Object.keys(currentState.enabledModels).forEach(model => {
-    const isEnabled = currentState.enabledModels[model];
+  // Loop through sites config and inject prompt into enabled AI models
+  sitesConfig.forEach(site => {
+    if (site.category === 'utility') return; // Skip utilities
+    const isEnabled = currentState.enabledModels[site.id];
     if (!isEnabled) return;
 
-    const webview = document.getElementById(`wv-${model}`);
+    const webview = document.getElementById(`wv-${site.id}`);
     if (webview) {
       activeCount++;
       const codeToRun = `(${injectionScript})(${JSON.stringify(prompt)});`;
       
       webview.executeJavaScript(codeToRun)
         .then(result => {
-          console.log(`Successfully injected into ${model}:`, result);
+          console.log(`Successfully injected into ${site.id}:`, result);
         })
         .catch(err => {
-          console.error(`Failed to inject into ${model}:`, err);
+          console.error(`Failed to inject into ${site.id}:`, err);
         });
     }
   });
@@ -509,13 +716,19 @@ function executeBroadcast() {
 
 // Event Listeners Setup
 function setupListeners() {
-  // 1. Sidebar Nav
-  document.querySelectorAll('.nav-item').forEach(btn => {
+  // 1. Sidebar Nav - structural items only (dynamic items have their own listeners)
+  document.querySelectorAll('.sidebar-nav > .nav-item').forEach(btn => {
     btn.addEventListener('click', () => {
       const tabId = btn.getAttribute('data-tab');
       if (tabId) switchTab(tabId);
     });
   });
+
+  // Settings tab button in footer
+  const settingsBtn = document.querySelector('.sidebar-footer .nav-item[data-tab="settings"]');
+  if (settingsBtn) {
+    settingsBtn.addEventListener('click', () => switchTab('settings'));
+  }
 
   // 2. Settings Layout Buttons
   document.querySelectorAll('.layout-btn').forEach(btn => {
@@ -550,116 +763,19 @@ function setupListeners() {
     });
   }
 
-  // 4. Settings AI Toggles
-  Object.keys(currentState.enabledModels).forEach(model => {
-    const checkbox = document.getElementById(`toggle-${model}`);
-    if (checkbox) {
-      checkbox.addEventListener('change', (e) => {
-        const isChecked = e.target.checked;
-        currentState.enabledModels[model] = isChecked;
-        
-        // Update Card
-        const card = document.getElementById(`card-${model}`);
-        if (card) {
-          if (isChecked) {
-            card.classList.remove('card-disabled');
-          } else {
-            card.classList.add('card-disabled');
-          }
-        }
-
-        // Update Nav status dot
-        const dot = document.getElementById(`dot-${model}`);
-        const navBtn = document.querySelector(`.nav-item[data-tab="${model}"]`);
-        const sidebarCheck = navBtn ? navBtn.querySelector('.sidebar-toggle-check') : null;
-        if (isChecked) {
-          if (dot) dot.classList.add('active');
-          if (navBtn) navBtn.style.opacity = '1';
-          if (sidebarCheck) sidebarCheck.checked = true;
-        } else {
-          if (dot) dot.classList.remove('active');
-          if (navBtn) navBtn.style.opacity = '0.5';
-          if (sidebarCheck) sidebarCheck.checked = false;
-        }
-
-        // Update Tray Badge
-        const trayBadge = document.querySelector(`.tray-badge[data-indicator="${model}"]`);
-        if (trayBadge) {
-          if (isChecked) {
-            trayBadge.classList.add('active');
-          } else {
-            trayBadge.classList.remove('active');
-          }
-        }
-
-        saveConfig();
-        updateWorkspaceWidget();
-      });
-    }
-  });
-
-  // 5. Settings Session Resets (Clears specific origins inside the shared partition)
-  document.querySelectorAll('.btn-danger[data-clear]').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const clearTarget = btn.getAttribute('data-clear');
-      const origin = btn.getAttribute('data-origin');
-      
-      let confirmMsg = '';
-      if (clearTarget === 'all') {
-        confirmMsg = 'Are you sure you want to reset ALL sessions and caches? This logs you out of everything.';
-      } else {
-        const modelName = btn.textContent.replace('Reset ', '');
-        confirmMsg = `Are you sure you want to clear storage and log out of ${modelName}?`;
-      }
-
-      const confirmReset = confirm(confirmMsg);
-      if (confirmReset) {
-        btn.disabled = true;
-        btn.textContent = 'Clearing...';
-        
-        let result;
-        if (clearTarget === 'all') {
-          result = await ipcRenderer.invoke('clear-session', { partition: 'persist:omniai_session' });
-        } else {
-          result = await ipcRenderer.invoke('clear-session', { 
-            partition: 'persist:omniai_session', 
-            origin: origin 
-          });
-        }
-        
-        if (result && result.success) {
-          alert(`Session cleared successfully. Reloading view...`);
-          if (clearTarget === 'all') {
-            document.querySelectorAll('webview').forEach(wv => wv.reload());
-          } else {
-            const wv = document.getElementById(`wv-${clearTarget}`);
-            if (wv) wv.reload();
-          }
-        } else {
-          alert(`Failed to clear session: ${result.error || 'Unknown error'}`);
-        }
-        
-        btn.disabled = false;
-        btn.textContent = clearTarget === 'all' ? 'Reset All Sessions' : `Reset ${btn.textContent.replace('Clearing...', '')}`;
-      }
-    });
-  });
-
-  // 6. Broadcast Input Keys (Ctrl + Enter to send, Up/Down to cycle history)
+  // 4. Broadcast Input Keys (Ctrl + Enter to send, Up/Down to cycle history)
   broadcastInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && e.ctrlKey) {
       e.preventDefault();
       executeBroadcast();
     } else if (e.key === 'ArrowUp') {
       if (currentState.broadcastHistory.length > 0) {
-        // If textarea is empty or we are already cycling, let's go up
         const isCursorAtStart = broadcastInput.selectionStart === 0 && broadcastInput.selectionEnd === 0;
         if (broadcastInput.value.trim() === '' || isCursorAtStart) {
           e.preventDefault();
           if (historyIndex < currentState.broadcastHistory.length - 1) {
             historyIndex++;
             broadcastInput.value = currentState.broadcastHistory[historyIndex];
-            // Move cursor to end
             setTimeout(() => {
               broadcastInput.selectionStart = broadcastInput.selectionEnd = broadcastInput.value.length;
             }, 0);
@@ -683,10 +799,10 @@ function setupListeners() {
     }
   });
 
-  // 7. Broadcast Send Button
+  // 5. Broadcast Send Button
   broadcastSendBtn.addEventListener('click', executeBroadcast);
 
-  // 8. Theme Accent Buttons
+  // 6. Theme Accent Buttons
   document.querySelectorAll('.accent-color-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const accent = btn.getAttribute('data-accent');
@@ -705,7 +821,7 @@ function setupListeners() {
     });
   });
 
-  // 9. Window Navigation Hotkeys (Ctrl + D, Ctrl + S, Ctrl + 1..9)
+  // 7. Window Navigation Hotkeys (Ctrl + D, Ctrl + S, Ctrl + 1..9)
   window.addEventListener('keydown', (e) => {
     // Skip if writing in input or textarea
     if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA' || document.activeElement.getAttribute('contenteditable') === 'true') {
@@ -728,21 +844,16 @@ function setupListeners() {
       } else if (e.key >= '1' && e.key <= '9') {
         e.preventDefault();
         const index = parseInt(e.key) - 1;
-        const models = [
-          'gemini', 'chatgpt', 'claude', 'grok', 'deepseek', 'qwen', 
-          'copilot', 'perplexity', 'lechat', 'pi', 'you', 'poe', 
-          'characterai', 'metaai', 'kimi', 'jasper', 
-          'phind', 'huggingchat', 'duckchat', 'groq', 'blackbox', 
-          'cohere', 'openrouter'
-        ];
-        if (index < models.length) {
-          switchTab(models[index]);
+        // Use AI sites from config for keyboard shortcuts
+        const aiSites = sitesConfig.filter(s => s.category === 'ai');
+        if (index < aiSites.length) {
+          switchTab(aiSites[index].id);
         }
       }
     }
   });
 
-  // 10. Prompt History Search and Clear
+  // 8. Prompt History Search and Clear
   const historySearch = document.getElementById('history-search');
   if (historySearch) {
     historySearch.addEventListener('input', renderPromptsHistory);
@@ -760,7 +871,7 @@ function setupListeners() {
     });
   }
 
-  // 11. Workspace Monitor Widget Quick Actions
+  // 9. Workspace Monitor Widget Quick Actions
   const widgetPaletteBtn = document.getElementById('widget-btn-palette');
   if (widgetPaletteBtn) {
     widgetPaletteBtn.addEventListener('click', openCmdPalette);
@@ -772,9 +883,35 @@ function setupListeners() {
   }
 }
 
-// App Initialization
-window.addEventListener('DOMContentLoaded', () => {
+
+// ===================================================================
+// App Initialization (async - loads sites config first)
+// ===================================================================
+window.addEventListener('DOMContentLoaded', async () => {
+  // Load sites configuration from main process
+  try {
+    const result = await ipcRenderer.invoke('read-sites-config');
+    if (result.success) {
+      sitesConfig = result.data.sites;
+    } else {
+      console.error('Failed to load sites config:', result.error);
+      sitesConfig = [];
+    }
+  } catch (e) {
+    console.error('IPC error loading sites config:', e);
+    sitesConfig = [];
+  }
+
+  // Load user preferences from localStorage
   loadConfig();
+
+  // Initialize enabledModels defaults from sites config
+  initEnabledModelsFromSites(sitesConfig);
+
+  // Build all dynamic UI elements
+  buildDynamicUI(sitesConfig);
+
+  // Initialize the app
   initUI();
   setupWebviewEvents();
   setupListeners();
@@ -782,9 +919,9 @@ window.addEventListener('DOMContentLoaded', () => {
   initSidebarSearch();
   initCmdPalette();
   initTemplates();
-  initZoomControls();
   initAlwaysOnTop();
   initBroadcastEnhancements();
+  initSitesEditor();
 });
 
 
@@ -830,27 +967,30 @@ function initSidebarSearch() {
 
 
 /* =================================================================
-   FEATURE: Command Palette
+   FEATURE: Command Palette (dynamically built from sitesConfig)
 ================================================================= */
-const CMD_ITEMS = [
-  { label: 'Dashboard',        badge: 'Ctrl+D', icon: '⊞', action: () => switchTab('dashboard') },
-  { label: 'Settings',         badge: 'Ctrl+S', icon: '⚙',  action: () => switchTab('settings') },
-  { label: 'Toggle Sidebar',   badge: 'Ctrl+B', icon: '◧',  action: () => toggleSidebar() },
-  { label: 'Always on Top',    badge: '',       icon: '📌',  action: () => toggleAlwaysOnTop() },
-  { label: 'Open Templates',   badge: '',       icon: '📄',  action: () => openTemplatesModal() },
-  { label: 'Broadcast',        badge: 'Ctrl+↵', icon: '📡',  action: () => document.getElementById('broadcast-send-btn').click() },
-  ...['gemini','chatgpt','zai','claude','grok','deepseek','qwen','copilot','perplexity',
-      'lechat','pi','you','poe','characterai','metaai','kimi','jasper',
-      'phind','huggingchat','duckchat','groq','blackbox','cohere','openrouter'].map((id, i) => ({
-    label: (document.querySelector(`.nav-item[data-tab="${id}"] .nav-label`)?.textContent || id),
-    badge: i < 9 ? `Ctrl+${i+1}` : '',
-    icon: '🤖',
-    action: () => switchTab(id)
-  }))
-];
-
 let cmdHighlightIndex = 0;
 let currentCmdItems = [];
+
+function buildCmdItems() {
+  const staticItems = [
+    { label: 'Dashboard',        badge: 'Ctrl+D', icon: '⊞', action: () => switchTab('dashboard') },
+    { label: 'Settings',         badge: 'Ctrl+S', icon: '⚙',  action: () => switchTab('settings') },
+    { label: 'Toggle Sidebar',   badge: 'Ctrl+B', icon: '◧',  action: () => toggleSidebar() },
+    { label: 'Always on Top',    badge: '',       icon: '📌',  action: () => toggleAlwaysOnTop() },
+    { label: 'Open Templates',   badge: '',       icon: '📄',  action: () => openTemplatesModal() },
+    { label: 'Broadcast',        badge: 'Ctrl+↵', icon: '📡',  action: () => document.getElementById('broadcast-send-btn').click() },
+  ];
+
+  const siteItems = sitesConfig.map((site, i) => ({
+    label: site.name,
+    badge: site.category === 'ai' && i < 9 ? `Ctrl+${i+1}` : '',
+    icon: site.icon,
+    action: () => switchTab(site.id)
+  }));
+
+  return [...staticItems, ...siteItems];
+}
 
 function openCmdPalette() {
   const overlay = document.getElementById('cmd-palette-overlay');
@@ -866,6 +1006,7 @@ function closeCmdPalette() {
 }
 
 function renderCmdResults(query) {
+  const CMD_ITEMS = buildCmdItems();
   const q = query.toLowerCase();
   currentCmdItems = q ? CMD_ITEMS.filter(i => i.label.toLowerCase().includes(q)) : CMD_ITEMS;
   cmdHighlightIndex = 0;
@@ -1004,26 +1145,7 @@ function initTemplates() {
 ================================================================= */
 const webviewZoomLevels = {};
 
-function initZoomControls() {
-  document.querySelectorAll('.webview-card').forEach(card => {
-    const wv = card.querySelector('webview');
-    if (!wv) return;
-    const wvId = wv.id;
-    webviewZoomLevels[wvId] = 1.0;
-
-    card.querySelector('.btn-zoom-in')?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      webviewZoomLevels[wvId] = Math.min(3.0, (webviewZoomLevels[wvId] || 1.0) + 0.1);
-      wv.setZoomFactor(webviewZoomLevels[wvId]);
-    });
-
-    card.querySelector('.btn-zoom-out')?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      webviewZoomLevels[wvId] = Math.max(0.3, (webviewZoomLevels[wvId] || 1.0) - 0.1);
-      wv.setZoomFactor(webviewZoomLevels[wvId]);
-    });
-  });
-}
+// Zoom controls are initialized inside setupWebviewEvents() for dynamic cards
 
 
 /* =================================================================
@@ -1226,12 +1348,13 @@ function createHistoryItemElement(item) {
   const date = new Date(item.timestamp);
   const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' - ' + date.toLocaleDateString();
   
-  // Source color styling classes or badges
-  const sourceClass = item.source.toLowerCase().replace('.', '').replace(' ', '');
+  // Find color from sitesConfig for badge, fallback to accent
+  const site = sitesConfig.find(s => s.name.toLowerCase() === item.source.toLowerCase());
+  const badgeColor = item.source === 'Broadcast' ? 'var(--accent-color)' : (site ? site.color : 'var(--text-dark)');
   
   el.innerHTML = `
     <div class="history-item-header">
-      <span class="history-badge ${sourceClass}-color-bg">${item.source}</span>
+      <span class="history-badge" style="background-color: ${badgeColor};">${item.source}</span>
       <span class="history-time">${timeStr}</span>
     </div>
     <div class="history-item-body">${escapeHtml(item.text)}</div>
@@ -1331,12 +1454,12 @@ function updateWorkspaceWidget() {
   
   if (!activeAisEl && !totalPromptsEl && !pinnedListEl) return;
   
-  // Calculate active AI count (excluding utility tabs like google or you widget itself)
-  const models = Object.keys(currentState.enabledModels).filter(m => m !== 'google' && m !== 'you');
-  const activeCount = models.filter(m => currentState.enabledModels[m]).length;
+  // Calculate active AI count from sitesConfig (exclude utilities like google)
+  const aiSites = sitesConfig.filter(s => s.category === 'ai');
+  const activeCount = aiSites.filter(s => currentState.enabledModels[s.id] !== false).length;
   
   if (activeAisEl) {
-    activeAisEl.textContent = `${activeCount} / ${models.length}`;
+    activeAisEl.textContent = `${activeCount} / ${aiSites.length}`;
   }
   
   const history = currentState.promptsHistory || [];
@@ -1396,3 +1519,87 @@ function updateWorkspaceWidget() {
   }
 }
 
+
+/* =================================================================
+   FEATURE: Sites JSON Editor in Settings
+================================================================= */
+function initSitesEditor() {
+  const editor = document.getElementById('sites-json-editor');
+  const statusEl = document.getElementById('sites-json-status');
+  const applyBtn = document.getElementById('sites-json-apply-btn');
+  const resetBtn = document.getElementById('sites-json-reset-btn');
+
+  if (!editor || !applyBtn || !resetBtn) return;
+
+  // Populate editor with current sites config
+  editor.value = JSON.stringify({ sites: sitesConfig }, null, 2);
+
+  // Handle Tab key in textarea for indentation
+  editor.addEventListener('keydown', (e) => {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const start = editor.selectionStart;
+      const end = editor.selectionEnd;
+      editor.value = editor.value.substring(0, start) + '  ' + editor.value.substring(end);
+      editor.selectionStart = editor.selectionEnd = start + 2;
+    }
+  });
+
+  // Validate & Apply button
+  applyBtn.addEventListener('click', async () => {
+    const jsonString = editor.value;
+    
+    // Local pre-check
+    try {
+      JSON.parse(jsonString);
+    } catch (e) {
+      statusEl.textContent = `❌ Invalid JSON: ${e.message}`;
+      statusEl.className = 'sites-json-status error';
+      return;
+    }
+
+    applyBtn.disabled = true;
+    applyBtn.textContent = 'Saving...';
+
+    const result = await ipcRenderer.invoke('write-sites-config', jsonString);
+    
+    if (result.success) {
+      statusEl.textContent = '✅ Saved successfully! Reloading app to apply changes...';
+      statusEl.className = 'sites-json-status success';
+
+      // Reload the app after a short delay so user sees the success message
+      setTimeout(() => {
+        window.location.reload();
+      }, 1200);
+    } else {
+      statusEl.textContent = `❌ Validation error: ${result.error}`;
+      statusEl.className = 'sites-json-status error';
+      applyBtn.disabled = false;
+      applyBtn.textContent = 'Validate & Apply';
+    }
+  });
+
+  // Reset to defaults button
+  resetBtn.addEventListener('click', async () => {
+    if (!confirm('Are you sure you want to reset to default sites configuration? Your custom changes will be lost.')) return;
+
+    resetBtn.disabled = true;
+    resetBtn.textContent = 'Resetting...';
+
+    const result = await ipcRenderer.invoke('reset-sites-config');
+    
+    if (result.success) {
+      statusEl.textContent = '✅ Reset to defaults! Reloading app...';
+      statusEl.className = 'sites-json-status success';
+
+      setTimeout(() => {
+        window.location.reload();
+      }, 1200);
+    } else {
+      statusEl.textContent = `❌ Reset failed: ${result.error}`;
+      statusEl.className = 'sites-json-status error';
+      resetBtn.disabled = false;
+      resetBtn.textContent = 'Reset to Defaults';
+    }
+  });
+}

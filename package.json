@@ -41,6 +41,7 @@
       "style.css",
       "renderer.js",
       "injection-script.js",
+      "sites.json",
       "assets/**/*",
       "package.json"
     ]

@@ -1359,3 +1359,55 @@ webview {
 }
 
 
+/* =========================================================
+   FEATURE: Sites JSON Editor
+   ========================================================= */
+
+.sites-json-editor {
+  width: 100%;
+  min-height: 280px;
+  max-height: 520px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  color: #c8d0e0;
+  font-family: 'Consolas', 'Fira Code', 'Monaco', monospace;
+  font-size: 12.5px;
+  line-height: 1.6;
+  padding: 14px 16px;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  tab-size: 2;
+  user-select: text;
+}
+
+.sites-json-editor:focus {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px rgba(91, 93, 248, 0.15);
+}
+
+.sites-json-status {
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 8px;
+  min-height: 18px;
+  transition: color 0.2s ease;
+}
+
+.sites-json-status.success {
+  color: var(--success-color);
+}
+
+.sites-json-status.error {
+  color: var(--danger-color);
+}
+
+.section-desc code {
+  background-color: rgba(255, 255, 255, 0.06);
+  padding: 2px 5px;
+  border-radius: 4px;
+  font-family: 'Consolas', monospace;
+  font-size: 12px;
+  color: #a5a6ff;
+}

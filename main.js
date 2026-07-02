@@ -3,8 +3,8 @@ const path = require('path');
 
 let mainWindow;
 
-// Standard Chrome User Agent (matches the underlying Chromium engine of Electron to avoid discrepancy detection)
-const MODERN_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36';
+// Standard Firefox User Agent (bypasses Google Auth "secure browser" checks more reliably than Chrome because it does not require Client Hints)
+const MODERN_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0';
 const SHARED_PARTITION = 'persist:omniai_session';
 
 // Critical for bypassing Google Auth "secure browser" checks
@@ -16,13 +16,16 @@ function configureSessions() {
   // Set custom user agent globally on the session
   ses.setUserAgent(MODERN_USER_AGENT);
 
-  // Modify headers to remove Electron/Chromium specific hints
+  // Modify headers to remove ALL Electron/Chromium specific hints
   ses.webRequest.onBeforeSendHeaders((details, callback) => {
     details.requestHeaders['User-Agent'] = MODERN_USER_AGENT;
-    // Delete headers that might reveal this is an embedded/Electron browser
-    delete details.requestHeaders['sec-ch-ua'];
-    delete details.requestHeaders['sec-ch-ua-mobile'];
-    delete details.requestHeaders['sec-ch-ua-platform'];
+    // Delete ALL Client Hints headers — Firefox never sends any sec-ch-* headers,
+    // so their presence would expose this as Chromium and trigger Google's block.
+    Object.keys(details.requestHeaders).forEach(key => {
+      if (key.toLowerCase().startsWith('sec-ch-')) {
+        delete details.requestHeaders[key];
+      }
+    });
     
     callback({ cancel: false, requestHeaders: details.requestHeaders });
   });
@@ -78,6 +81,27 @@ app.whenReady().then(() => {
     });
     
     contents.userAgent = MODERN_USER_AGENT;
+
+    // Anti-fingerprint: mask Chromium-specific JavaScript properties on Google pages
+    // so that the JS environment matches our Firefox User-Agent.
+    // (window.chrome exists in Chromium but NOT in Firefox — Google can detect this mismatch)
+    contents.on('dom-ready', () => {
+      try {
+        const url = contents.getURL();
+        if (url && (url.includes('google.com') || url.includes('googleapis.com') || url.includes('gstatic.com'))) {
+          contents.executeJavaScript(`
+            try {
+              // Firefox does not have window.chrome — remove it to match our Firefox UA
+              if (window.chrome) { delete window.chrome; }
+              // Ensure the webdriver flag is not set (set by some Electron/automation configs)
+              Object.defineProperty(navigator, 'webdriver', { get: () => false, configurable: true });
+              // Firefox navigator.plugins returns an empty PluginArray
+              Object.defineProperty(navigator, 'plugins', { get: () => [], configurable: true });
+            } catch(e) {}
+          `).catch(() => {});
+        }
+      } catch(e) {}
+    });
 
     // Globally handle ANY popup (window.open) triggered by ANY webContents (including webviews)
     contents.setWindowOpenHandler(({ url }) => {
@@ -149,4 +173,92 @@ ipcMain.handle('get-always-on-top', async () => {
     return { alwaysOnTop: mainWindow.isAlwaysOnTop() };
   }
   return { alwaysOnTop: false };
+});
+
+// ===================================================================
+// IPC Handlers for Sites Configuration (sites.json)
+// ===================================================================
+const BUNDLED_SITES_PATH = path.join(__dirname, 'sites.json');
+const USER_SITES_PATH = path.join(app.getPath('userData'), 'sites.json');
+
+// Copy bundled sites.json to userData on first run
+function ensureUserSitesConfig() {
+  const fs = require('fs');
+  if (!fs.existsSync(USER_SITES_PATH)) {
+    try {
+      fs.copyFileSync(BUNDLED_SITES_PATH, USER_SITES_PATH);
+      console.log('Copied bundled sites.json to userData');
+    } catch (e) {
+      console.error('Failed to copy sites.json to userData:', e);
+    }
+  }
+}
+
+// Read sites config: user copy first, fallback to bundled
+ipcMain.handle('read-sites-config', async () => {
+  const fs = require('fs');
+  ensureUserSitesConfig();
+  try {
+    const data = fs.readFileSync(USER_SITES_PATH, 'utf8');
+    const parsed = JSON.parse(data);
+    return { success: true, data: parsed };
+  } catch (e) {
+    // Fallback to bundled
+    try {
+      const data = fs.readFileSync(BUNDLED_SITES_PATH, 'utf8');
+      const parsed = JSON.parse(data);
+      return { success: true, data: parsed };
+    } catch (e2) {
+      return { success: false, error: e2.message };
+    }
+  }
+});
+
+// Write sites config to user's copy
+ipcMain.handle('write-sites-config', async (event, jsonString) => {
+  const fs = require('fs');
+  try {
+    // Validate JSON
+    const parsed = JSON.parse(jsonString);
+    if (!parsed.sites || !Array.isArray(parsed.sites)) {
+      return { success: false, error: '"sites" must be an array' };
+    }
+    // Validate each site entry
+    const requiredFields = ['id', 'name', 'url', 'icon', 'color', 'category', 'enabled', 'trayLabel'];
+    const ids = new Set();
+    for (const site of parsed.sites) {
+      for (const field of requiredFields) {
+        if (site[field] === undefined || site[field] === null) {
+          return { success: false, error: `Site "${site.id || site.name || '?'}" is missing required field: "${field}"` };
+        }
+      }
+      if (ids.has(site.id)) {
+        return { success: false, error: `Duplicate site id: "${site.id}"` };
+      }
+      ids.add(site.id);
+      if (!site.url.startsWith('http://') && !site.url.startsWith('https://')) {
+        return { success: false, error: `Site "${site.id}" has invalid URL (must start with http:// or https://)` };
+      }
+      if (!['ai', 'utility'].includes(site.category)) {
+        return { success: false, error: `Site "${site.id}" has invalid category (must be "ai" or "utility")` };
+      }
+    }
+    // Write to disk
+    fs.writeFileSync(USER_SITES_PATH, JSON.stringify(parsed, null, 2), 'utf8');
+    return { success: true };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+});
+
+// Reset sites config to bundled default
+ipcMain.handle('reset-sites-config', async () => {
+  const fs = require('fs');
+  try {
+    fs.copyFileSync(BUNDLED_SITES_PATH, USER_SITES_PATH);
+    const data = fs.readFileSync(USER_SITES_PATH, 'utf8');
+    return { success: true, data: JSON.parse(data) };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
 });
