@@ -763,9 +763,11 @@ function setupListeners() {
     });
   }
 
-  // 4. Broadcast Input Keys (Ctrl + Enter to send, Up/Down to cycle history)
+  // 4. Broadcast Input Keys (Ctrl/Cmd + Enter to send, Up/Down to cycle history)
   broadcastInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && e.ctrlKey) {
+    const isMac = (typeof process !== 'undefined' && process.platform === 'darwin');
+    const hasModifier = isMac ? e.metaKey : e.ctrlKey;
+    if (e.key === 'Enter' && hasModifier) {
       e.preventDefault();
       executeBroadcast();
     } else if (e.key === 'ArrowUp') {
@@ -821,14 +823,17 @@ function setupListeners() {
     });
   });
 
-  // 7. Window Navigation Hotkeys (Ctrl + D, Ctrl + S, Ctrl + 1..9)
+  // 7. Window Navigation Hotkeys (Cmd on Mac, Ctrl on Win/Linux)
   window.addEventListener('keydown', (e) => {
     // Skip if writing in input or textarea
     if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA' || document.activeElement.getAttribute('contenteditable') === 'true') {
       return;
     }
 
-    if (e.ctrlKey) {
+    const isMac = (typeof process !== 'undefined' && process.platform === 'darwin');
+    const hasModifier = isMac ? e.metaKey : e.ctrlKey;
+
+    if (hasModifier) {
       if (e.key.toLowerCase() === 'd') {
         e.preventDefault();
         switchTab('dashboard');
@@ -922,6 +927,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   initAlwaysOnTop();
   initBroadcastEnhancements();
   initSitesEditor();
+  initMacPlatformReplacements();
 });
 
 
@@ -1056,7 +1062,9 @@ function initCmdPalette() {
   });
 
   document.addEventListener('keydown', (e) => {
-    if (e.ctrlKey && e.key.toLowerCase() === 'k') {
+    const isMac = (typeof process !== 'undefined' && process.platform === 'darwin');
+    const hasModifier = isMac ? e.metaKey : e.ctrlKey;
+    if (hasModifier && e.key.toLowerCase() === 'k') {
       e.preventDefault();
       if (overlay.classList.contains('hidden')) openCmdPalette();
       else closeCmdPalette();
@@ -1206,6 +1214,38 @@ function initBroadcastEnhancements() {
   });
   if (broadcastStatus) {
     observer.observe(broadcastStatus, { characterData: true, childList: true, subtree: true });
+  }
+}
+
+/* =================================================================
+   FEATURE: macOS Tooltip and String Localizations
+================================================================= */
+function initMacPlatformReplacements() {
+  const isMac = (typeof process !== 'undefined' && process.platform === 'darwin');
+  if (isMac) {
+    // 1. Sidebar collapse button tooltip
+    const collapseBtn = document.getElementById('sidebar-collapse-btn');
+    if (collapseBtn) collapseBtn.setAttribute('title', 'Collapse Sidebar (⌘B)');
+
+    // 2. Command palette button tooltip
+    const cmdPaletteBtn = document.getElementById('cmd-palette-btn');
+    if (cmdPaletteBtn) cmdPaletteBtn.setAttribute('title', 'Command Palette (⌘K)');
+
+    // 3. Broadcast input placeholder
+    const broadcastInput = document.getElementById('broadcast-input');
+    if (broadcastInput) broadcastInput.setAttribute('placeholder', 'Enter prompt to execute across all active AIs... (⌘Enter to send)');
+
+    // 4. Broadcast send button tooltip
+    const broadcastSendBtn = document.getElementById('broadcast-send-btn');
+    if (broadcastSendBtn) broadcastSendBtn.setAttribute('title', 'Broadcast prompt (⌘Enter)');
+
+    // 5. Help card text update
+    const infoCards = document.querySelectorAll('.info-card p');
+    infoCards.forEach(p => {
+      if (p.innerHTML.includes('Ctrl + Enter')) {
+        p.innerHTML = p.innerHTML.replace('Ctrl + Enter', '⌘ + Enter');
+      }
+    });
   }
 }
 
