@@ -33,6 +33,7 @@ jspm_packages/
 
 # Output directory for electron-builder (packaged binaries and installers)
 dist/
+dist-mac/
 dist-unpacked/
 
 # IDEs and editors

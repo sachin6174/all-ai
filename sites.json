@@ -231,6 +231,186 @@
       "trayLabel": "O.Router"
     },
     {
+      "id": "you",
+      "name": "You.com",
+      "url": "https://you.com/chat",
+      "icon": "Y",
+      "color": "#6C5CE7",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "You.com"
+    },
+    {
+      "id": "venice",
+      "name": "Venice AI",
+      "url": "https://venice.ai/",
+      "icon": "V",
+      "color": "#FF5C5C",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "Venice"
+    },
+    {
+      "id": "reka",
+      "name": "Reka Chat",
+      "url": "https://chat.reka.ai/",
+      "icon": "◈",
+      "color": "#00D4AA",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "Reka"
+    },
+    {
+      "id": "doubao",
+      "name": "Doubao",
+      "url": "https://www.doubao.com/",
+      "icon": "豆",
+      "color": "#4A90D9",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "Doubao"
+    },
+    {
+      "id": "ernie",
+      "name": "Ernie Bot",
+      "url": "https://yiyan.baidu.com/",
+      "icon": "文",
+      "color": "#2932E1",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "Ernie"
+    },
+    {
+      "id": "chatglm",
+      "name": "ChatGLM",
+      "url": "https://chatglm.cn/",
+      "icon": "智",
+      "color": "#4E6EF2",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "GLM"
+    },
+    {
+      "id": "yuanbao",
+      "name": "Tencent Yuanbao",
+      "url": "https://yuanbao.tencent.com/",
+      "icon": "元",
+      "color": "#0052D9",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "Yuanbao"
+    },
+    {
+      "id": "andi",
+      "name": "Andi Search",
+      "url": "https://andisearch.com/",
+      "icon": "🔮",
+      "color": "#FF6B9D",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "Andi"
+    },
+    {
+      "id": "komo",
+      "name": "Komo AI",
+      "url": "https://komo.ai/",
+      "icon": "K",
+      "color": "#7B61FF",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "Komo"
+    },
+    {
+      "id": "janitorai",
+      "name": "Janitor AI",
+      "url": "https://janitorai.com/",
+      "icon": "👤",
+      "color": "#FF4757",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "Janitor"
+    },
+    {
+      "id": "novelai",
+      "name": "NovelAI",
+      "url": "https://novelai.net/",
+      "icon": "✍",
+      "color": "#7C4DFF",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "NovelAI"
+    },
+    {
+      "id": "replika",
+      "name": "Replika",
+      "url": "https://replika.com/",
+      "icon": "💙",
+      "color": "#00BFA5",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "Replika"
+    },
+    {
+      "id": "aistudio",
+      "name": "Google AI Studio",
+      "url": "https://aistudio.google.com/",
+      "icon": "🔬",
+      "color": "#4285f4",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "AI Studio"
+    },
+    {
+      "id": "githubcopilot",
+      "name": "GitHub Copilot",
+      "url": "https://github.com/copilot",
+      "icon": "🐙",
+      "color": "#24292F",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "GH Copilot"
+    },
+    {
+      "id": "aidungeon",
+      "name": "AI Dungeon",
+      "url": "https://play.aidungeon.com/",
+      "icon": "🐉",
+      "color": "#8B4513",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "AI Dungeon"
+    },
+    {
+      "id": "elicit",
+      "name": "Elicit",
+      "url": "https://elicit.com/",
+      "icon": "📊",
+      "color": "#6366F1",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "Elicit"
+    },
+    {
+      "id": "consensus",
+      "name": "Consensus",
+      "url": "https://consensus.app/",
+      "icon": "✓",
+      "color": "#10B981",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "Consensus"
+    },
+    {
+      "id": "merlin",
+      "name": "Merlin AI",
+      "url": "https://www.getmerlin.in/chat",
+      "icon": "🧙",
+      "color": "#9B59B6",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "Merlin"
+    },
+    {
       "id": "google",
       "name": "Google Login",
       "url": "https://accounts.google.com/",

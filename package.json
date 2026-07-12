@@ -1,6 +1,6 @@
 {
   "name": "omni-ai-chat",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "description": "Multi-platform desktop client integrating multiple AI chats with global broadcast.",
   "main": "main.js",
   "scripts": {
@@ -11,6 +11,7 @@
     "dist:all": "electron-builder --win --mac"
   },
   "devDependencies": {
+    "@electron/notarize": "^2.5.0",
     "electron": "^31.1.0",
     "electron-builder": "^24.13.3"
   },
@@ -53,9 +54,18 @@
           ]
         }
       ],
-      "identity": null,
-      "category": "public.app-category.productivity"
+      "identity": "Sachin Kumar (M5Q7N9D29M)",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
+      "category": "public.app-category.productivity",
+      "extendInfo": {
+        "NSMicrophoneUsageDescription": "OmniAI Chat needs microphone access so voice input works on AI chat sites that support it.",
+        "NSCameraUsageDescription": "OmniAI Chat needs camera access so video/image features work on AI chat sites that support it."
+      }
     },
+    "afterSign": "build/notarize.js",
     "files": [
       "main.js",
       "index.html",

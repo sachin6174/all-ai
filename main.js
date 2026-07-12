@@ -80,7 +80,12 @@ function createWindow() {
       webviewTag: true,
       devTools: true
     },
-    frame: isMac ? false : true // Standard window frame for easy minimize/maximize/close
+    // Always keep the native frame. On macOS `titleBarStyle: 'hiddenInset'`
+    // already gives the inset-traffic-lights look (paired with the
+    // -webkit-app-region: drag CSS on .sidebar-brand); setting frame:false
+    // here as well would remove the traffic lights entirely, leaving no
+    // mouse-based way to close/minimize/maximize the window on macOS.
+    frame: true
   });
 
   if (isWin) {
@@ -204,6 +209,13 @@ function setAppMenu() {
 app.whenReady().then(() => {
   if (process.platform === 'win32') {
     app.setAppUserModelId('com.omniaichat.app');
+  }
+  if (process.platform === 'darwin' && !app.isPackaged) {
+    // In a packaged .app, the Dock icon comes from Info.plist (built from
+    // assets/icon.png via electron-builder's mac.icon). In dev mode
+    // (`npm start`), Electron shows its own default icon unless we set one
+    // explicitly - this keeps the Dock icon consistent in both cases.
+    app.dock.setIcon(path.join(__dirname, 'assets/icon.png'));
   }
   setAppMenu();
   configureSessions();
