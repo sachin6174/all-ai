@@ -32,6 +32,9 @@
         }
       ]
     },
+    "nsis": {
+      "runAfterFinish": false
+    },
     "mac": {
       "icon": "assets/icon.png",
       "target": [

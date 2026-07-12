@@ -10,6 +10,21 @@ const SHARED_PARTITION = 'persist:omniai_session';
 // Critical for bypassing Google Auth "secure browser" checks
 app.userAgentFallback = MODERN_USER_AGENT;
 
+// Prevent multiple simultaneous instances - without this, opening the app twice
+// spawns two full copies that fight over the same session/cache files on disk
+// (LevelDB/IndexedDB lock errors), instead of just focusing the existing window.
+const gotSingleInstanceLock = app.requestSingleInstanceLock();
+if (!gotSingleInstanceLock) {
+  app.quit();
+} else {
+  app.on('second-instance', () => {
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
+    }
+  });
+}
+
 function configureSessions() {
   const ses = session.fromPartition(SHARED_PARTITION);
   
@@ -34,8 +49,15 @@ function configureSessions() {
 function createWindow() {
   const isMac = process.platform === 'darwin';
   const isWin = process.platform === 'win32';
+  // Always point at our bundled multi-resolution icon (works both in dev and
+  // packaged builds - Electron reads files transparently out of app.asar).
+  // Previously this was `undefined` for packaged Windows builds, relying only
+  // on the exe's embedded icon resource; we now also set it explicitly below
+  // via mainWindow.setIcon() as a second, more direct guarantee for the
+  // taskbar/title-bar icon (WM_SETICON), since WM_GETICON can otherwise
+  // return null and force a fallback to the window class icon.
   const iconPath = isWin
-    ? (app.isPackaged ? undefined : path.join(__dirname, 'assets/icon.ico'))
+    ? path.join(__dirname, 'assets/icon.ico')
     : path.join(__dirname, 'assets/icon.png');
 
   mainWindow = new BrowserWindow({
@@ -47,6 +69,11 @@ function createWindow() {
     backgroundColor: '#0a0b10',
     icon: iconPath,
     titleBarStyle: isMac ? 'hiddenInset' : 'default',
+    // Stay hidden until the icon is explicitly applied below - this avoids a
+    // window (and its taskbar button) ever being created/shown with no/blank
+    // icon, which is what made the icon look "white" right after a fresh
+    // install auto-launches the app for the first time.
+    show: false,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -55,6 +82,32 @@ function createWindow() {
     },
     frame: isMac ? false : true // Standard window frame for easy minimize/maximize/close
   });
+
+  if (isWin) {
+    mainWindow.setIcon(iconPath);
+  }
+
+  const showWindowOnce = (() => {
+    let shown = false;
+    return () => {
+      if (shown || mainWindow.isDestroyed()) return;
+      shown = true;
+      // Re-apply the icon right before showing: on Windows the native peer's
+      // taskbar association can otherwise pick up a blank icon at the moment
+      // the window first becomes visible, even if setIcon() was already
+      // called earlier while the window was still hidden.
+      if (isWin) {
+        mainWindow.setIcon(iconPath);
+      }
+      mainWindow.show();
+    };
+  })();
+
+  mainWindow.once('ready-to-show', showWindowOnce);
+  // Safety net: don't let a slow/blocked first paint (e.g. the Google Fonts
+  // request in index.html on a poor connection) keep the window hidden
+  // indefinitely - show it anyway after a short timeout.
+  setTimeout(showWindowOnce, 3000);
 
   mainWindow.loadFile('index.html');
 
