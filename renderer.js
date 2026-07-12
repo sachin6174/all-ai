@@ -97,6 +97,32 @@ function buildSidebarNav(sites) {
   });
 }
 
+// Resolve the src URL for a site (handles Gemini's authuser special case)
+function getSiteSrcUrl(site) {
+  if (site.id === 'gemini') {
+    return `https://gemini.google.com/app?authuser=${currentState.geminiAuthUser}`;
+  }
+  return site.url;
+}
+
+// Lazily navigate a webview to its real URL if it hasn't been loaded yet
+// (i.e. it was skipped at startup because it was disabled or a utility site).
+function ensureWebviewLoaded(siteId) {
+  const webview = document.getElementById(`wv-${siteId}`);
+  if (!webview || webview.getAttribute('src')) return;
+  const site = sitesConfig.find(s => s.id === siteId);
+  if (!site) return;
+  webview.setAttribute('src', getSiteSrcUrl(site));
+}
+
+// Unload a webview's content to actually free its memory (renderer process,
+// JS heap, DOM, cached assets) instead of merely hiding it with CSS.
+function unloadWebview(siteId) {
+  const webview = document.getElementById(`wv-${siteId}`);
+  if (!webview || !webview.getAttribute('src')) return;
+  webview.setAttribute('src', 'about:blank');
+}
+
 // 2. Build webview cards
 function buildWebviewCards(sites) {
   // Preserve the Workspace Monitor widget (card-you)
@@ -124,10 +150,14 @@ function buildWebviewCards(sites) {
     `;
 
     // Determine the src URL (special case: Gemini with authuser)
-    let srcUrl = site.url;
-    if (site.id === 'gemini') {
-      srcUrl = `https://gemini.google.com/app?authuser=${currentState.geminiAuthUser}`;
-    }
+    const srcUrl = getSiteSrcUrl(site);
+
+    // MEMORY OPTIMIZATION: only eager-load webviews that are actually enabled AI
+    // channels. Utility sites (Google Login) and disabled models stay unloaded
+    // (no src = no guest renderer process spun up) until the user actually
+    // navigates to them or re-enables them. See ensureWebviewLoaded/unloadWebview.
+    const isEnabled = currentState.enabledModels[site.id] !== false;
+    const shouldEagerLoad = site.category !== 'utility' && isEnabled;
 
     card.innerHTML = `
       <div class="card-header">
@@ -135,7 +165,7 @@ function buildWebviewCards(sites) {
         <div class="card-actions">${actionButtons}</div>
       </div>
       <div class="webview-wrapper">
-        <webview allowpopups id="wv-${site.id}" src="${srcUrl}" partition="persist:omniai_session"></webview>
+        <webview allowpopups id="wv-${site.id}" ${shouldEagerLoad ? `src="${srcUrl}"` : ''} partition="persist:omniai_session"></webview>
         <div class="loader-overlay"><div class="spinner"></div><span>Connecting to ${site.name}...</span></div>
       </div>
     `;
@@ -240,10 +270,13 @@ function buildSessionResets(sites) {
         if (result && result.success) {
           alert(`Session cleared successfully. Reloading view...`);
           if (clearTarget === 'all') {
-            document.querySelectorAll('webview').forEach(wv => wv.reload());
+            // Only reload webviews that actually have content loaded
+            document.querySelectorAll('webview').forEach(wv => {
+              if (wv.getAttribute('src')) wv.reload();
+            });
           } else {
             const wv = document.getElementById(`wv-${clearTarget}`);
-            if (wv) wv.reload();
+            if (wv && wv.getAttribute('src')) wv.reload();
           }
         } else {
           alert(`Failed to clear session: ${result.error || 'Unknown error'}`);
@@ -277,6 +310,14 @@ function buildTrayBadges(sites) {
 // ===================================================================
 function toggleModelEnabled(modelId, isEnabled) {
   currentState.enabledModels[modelId] = isEnabled;
+
+  // MEMORY OPTIMIZATION: actually load/unload the webview's content, not just
+  // hide it with CSS - this is what makes disabling a model reclaim memory.
+  if (isEnabled) {
+    ensureWebviewLoaded(modelId);
+  } else {
+    unloadWebview(modelId);
+  }
 
   // Update Card visibility
   const card = document.getElementById(`card-${modelId}`);
@@ -399,11 +440,8 @@ function initUI() {
     }
   });
 
-  // 2. Setup Gemini authuser source URL
-  const wvGemini = document.getElementById('wv-gemini');
-  if (wvGemini) {
-    wvGemini.setAttribute('src', `https://gemini.google.com/app?authuser=${currentState.geminiAuthUser}`);
-  }
+  // 2. Setup Gemini authuser select (webview src is already set correctly by
+  // buildWebviewCards() using currentState.geminiAuthUser - no need to redo it here)
   if (geminiAuthUserSelect) {
     geminiAuthUserSelect.value = currentState.geminiAuthUser;
   }
@@ -494,6 +532,8 @@ function switchTab(tabId) {
       targetCard.classList.add('focus-target');
       // Ensure target is not hidden by dashboard toggles
       targetCard.classList.remove('card-disabled');
+      // Lazily load it if it was skipped at startup (utility site or disabled model)
+      ensureWebviewLoaded(tabId);
     }
   }
 }
@@ -750,15 +790,15 @@ function setupListeners() {
     geminiAuthUserSelect.addEventListener('change', (e) => {
       const value = e.target.value;
       currentState.geminiAuthUser = value;
-      
-      // Update webview src dynamically and reload
+
+      // Update webview src dynamically (only if Gemini is actually loaded/enabled -
+      // setAttribute already triggers navigation, no need to also call .reload())
       const wvGemini = document.getElementById('wv-gemini');
-      if (wvGemini) {
+      if (wvGemini && wvGemini.getAttribute('src')) {
         wvGemini.setAttribute('src', `https://gemini.google.com/app?authuser=${value}`);
-        wvGemini.reload();
         console.log(`Switched Gemini to Google account index: ${value}`);
       }
-      
+
       saveConfig();
     });
   }
@@ -825,8 +865,12 @@ function setupListeners() {
 
   // 7. Window Navigation Hotkeys (Cmd on Mac, Ctrl on Win/Linux)
   window.addEventListener('keydown', (e) => {
-    // Skip if writing in input or textarea
-    if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA' || document.activeElement.getAttribute('contenteditable') === 'true') {
+    // Skip if writing in a text input/textarea (checkboxes/radios should not block hotkeys)
+    const activeEl = document.activeElement;
+    const isTextInput = activeEl.tagName === 'TEXTAREA' ||
+      (activeEl.tagName === 'INPUT' && !['checkbox', 'radio', 'button'].includes(activeEl.type)) ||
+      activeEl.getAttribute('contenteditable') === 'true';
+    if (isTextInput) {
       return;
     }
 
@@ -1103,8 +1147,8 @@ function renderTemplatesList() {
     const el = document.createElement('div');
     el.className = 'template-item';
     el.innerHTML = `
-      <span class="template-item-name" title="${tpl.name}">${tpl.name}</span>
-      <span class="template-item-preview" title="${tpl.body}">${tpl.body}</span>
+      <span class="template-item-name" title="${escapeHtml(tpl.name)}">${escapeHtml(tpl.name)}</span>
+      <span class="template-item-preview" title="${escapeHtml(tpl.body)}">${escapeHtml(tpl.body)}</span>
       <button class="template-item-delete" title="Delete">
         <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
           <polyline points="3 6 5 6 21 6"></polyline>

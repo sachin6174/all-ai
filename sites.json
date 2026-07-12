@@ -27,7 +27,7 @@
       "icon": "Z",
       "color": "#ffffff",
       "category": "ai",
-      "enabled": true,
+      "enabled": false,
       "trayLabel": "Z AI"
     },
     {
@@ -67,7 +67,7 @@
       "icon": "Q",
       "color": "#7c3aed",
       "category": "ai",
-      "enabled": true,
+      "enabled": false,
       "trayLabel": "Qwen"
     },
     {
@@ -77,7 +77,7 @@
       "icon": "⊞",
       "color": "#0078d4",
       "category": "ai",
-      "enabled": true,
+      "enabled": false,
       "trayLabel": "Copilot"
     },
     {
@@ -87,7 +87,7 @@
       "icon": "🔎",
       "color": "#20b2aa",
       "category": "ai",
-      "enabled": true,
+      "enabled": false,
       "trayLabel": "Perplexity"
     },
     {
@@ -97,7 +97,7 @@
       "icon": "💬",
       "color": "#ff7000",
       "category": "ai",
-      "enabled": true,
+      "enabled": false,
       "trayLabel": "Le Chat"
     },
     {
@@ -107,7 +107,7 @@
       "icon": "π",
       "color": "#a3e635",
       "category": "ai",
-      "enabled": true,
+      "enabled": false,
       "trayLabel": "Pi"
     },
     {
@@ -117,7 +117,7 @@
       "icon": "◉",
       "color": "#6366f1",
       "category": "ai",
-      "enabled": true,
+      "enabled": false,
       "trayLabel": "Poe"
     },
     {
@@ -127,7 +127,7 @@
       "icon": "👥",
       "color": "#ec4899",
       "category": "ai",
-      "enabled": true,
+      "enabled": false,
       "trayLabel": "C.AI"
     },
     {
@@ -137,7 +137,7 @@
       "icon": "∞",
       "color": "#1877f2",
       "category": "ai",
-      "enabled": true,
+      "enabled": false,
       "trayLabel": "Meta"
     },
     {
@@ -147,7 +147,7 @@
       "icon": "📖",
       "color": "#06b6d4",
       "category": "ai",
-      "enabled": true,
+      "enabled": false,
       "trayLabel": "Kimi"
     },
     {
@@ -157,7 +157,7 @@
       "icon": "◆",
       "color": "#f43f5e",
       "category": "ai",
-      "enabled": true,
+      "enabled": false,
       "trayLabel": "Jasper"
     },
     {
@@ -167,7 +167,7 @@
       "icon": "<>",
       "color": "#8b5cf6",
       "category": "ai",
-      "enabled": true,
+      "enabled": false,
       "trayLabel": "Phind"
     },
     {
@@ -177,7 +177,7 @@
       "icon": "🤗",
       "color": "#fbbf24",
       "category": "ai",
-      "enabled": true,
+      "enabled": false,
       "trayLabel": "Hugging"
     },
     {
@@ -187,7 +187,7 @@
       "icon": "🦆",
       "color": "#de5833",
       "category": "ai",
-      "enabled": true,
+      "enabled": false,
       "trayLabel": "Duck"
     },
     {
@@ -197,7 +197,7 @@
       "icon": "⚡",
       "color": "#f97316",
       "category": "ai",
-      "enabled": true,
+      "enabled": false,
       "trayLabel": "Groq"
     },
     {
@@ -207,7 +207,7 @@
       "icon": "■",
       "color": "#6b7280",
       "category": "ai",
-      "enabled": true,
+      "enabled": false,
       "trayLabel": "B.Box"
     },
     {
@@ -217,7 +217,7 @@
       "icon": "◇",
       "color": "#39d353",
       "category": "ai",
-      "enabled": true,
+      "enabled": false,
       "trayLabel": "Cohere"
     },
     {
@@ -227,7 +227,7 @@
       "icon": "⊙",
       "color": "#6d28d9",
       "category": "ai",
-      "enabled": true,
+      "enabled": false,
       "trayLabel": "O.Router"
     },
     {
