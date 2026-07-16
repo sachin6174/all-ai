@@ -8,9 +8,14 @@
     "dist": "electron-builder",
     "dist:win": "electron-builder --win",
     "dist:mac": "electron-builder --mac",
-    "dist:all": "electron-builder --win --mac"
+    "dist:all": "electron-builder --win --mac",
+    "build:web": "powershell -Command \"New-Item -ItemType Directory -Force -Path www; Copy-Item index.html, style.css, renderer.js, injection-script.js, sites.json www; Copy-Item -Recurse -Force assets www\""
   },
   "devDependencies": {
+    "@capacitor/android": "^8.4.2",
+    "@capacitor/cli": "^8.4.2",
+    "@capacitor/core": "^8.4.2",
+    "@capacitor/ios": "^8.4.2",
     "@electron/notarize": "^2.5.0",
     "electron": "^31.1.0",
     "electron-builder": "^24.13.3"
@@ -22,7 +27,7 @@
       "output": "dist"
     },
     "win": {
-      "icon": "assets/icon.ico",
+      "icon": "win/icon.ico",
       "target": [
         {
           "target": "nsis",
@@ -37,7 +42,7 @@
       "runAfterFinish": false
     },
     "mac": {
-      "icon": "assets/icon.png",
+      "icon": "mac/icon.png",
       "target": [
         {
           "target": "dmg",
@@ -57,15 +62,15 @@
       "identity": "Sachin Kumar (M5Q7N9D29M)",
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
-      "entitlements": "build/entitlements.mac.plist",
-      "entitlementsInherit": "build/entitlements.mac.plist",
+      "entitlements": "mac/entitlements.mac.plist",
+      "entitlementsInherit": "mac/entitlements.mac.plist",
       "category": "public.app-category.productivity",
       "extendInfo": {
         "NSMicrophoneUsageDescription": "OmniAI Chat needs microphone access so voice input works on AI chat sites that support it.",
         "NSCameraUsageDescription": "OmniAI Chat needs camera access so video/image features work on AI chat sites that support it."
       }
     },
-    "afterSign": "build/notarize.js",
+    "afterSign": "mac/notarize.js",
     "files": [
       "main.js",
       "index.html",
@@ -74,6 +79,9 @@
       "injection-script.js",
       "sites.json",
       "assets/**/*",
+      "win/icon.ico",
+      "mac/icon.png",
+      "linux/icon.png",
       "package.json"
     ]
   }

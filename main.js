@@ -49,16 +49,21 @@ function configureSessions() {
 function createWindow() {
   const isMac = process.platform === 'darwin';
   const isWin = process.platform === 'win32';
-  // Always point at our bundled multi-resolution icon (works both in dev and
+  // Always point at our bundled platform-specific icon (works both in dev and
   // packaged builds - Electron reads files transparently out of app.asar).
   // Previously this was `undefined` for packaged Windows builds, relying only
   // on the exe's embedded icon resource; we now also set it explicitly below
   // via mainWindow.setIcon() as a second, more direct guarantee for the
   // taskbar/title-bar icon (WM_SETICON), since WM_GETICON can otherwise
   // return null and force a fallback to the window class icon.
-  const iconPath = isWin
-    ? path.join(__dirname, 'assets/icon.ico')
-    : path.join(__dirname, 'assets/icon.png');
+  let iconPath;
+  if (isWin) {
+    iconPath = path.join(__dirname, 'win/icon.ico');
+  } else if (isMac) {
+    iconPath = path.join(__dirname, 'mac/icon.png');
+  } else {
+    iconPath = path.join(__dirname, 'linux/icon.png');
+  }
 
   mainWindow = new BrowserWindow({
     width: 1400,
