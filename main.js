@@ -333,7 +333,7 @@ ipcMain.handle('get-always-on-top', async () => {
 const BUNDLED_SITES_PATH = path.join(__dirname, 'sites.json');
 const USER_SITES_PATH = path.join(app.getPath('userData'), 'sites.json');
 
-// Copy bundled sites.json to userData on first run
+// Copy bundled sites.json to userData on first run or sync site updates
 function ensureUserSitesConfig() {
   const fs = require('fs');
   if (!fs.existsSync(USER_SITES_PATH)) {
@@ -342,6 +342,28 @@ function ensureUserSitesConfig() {
       console.log('Copied bundled sites.json to userData');
     } catch (e) {
       console.error('Failed to copy sites.json to userData:', e);
+    }
+  } else {
+    try {
+      const bundledData = JSON.parse(fs.readFileSync(BUNDLED_SITES_PATH, 'utf8'));
+      const userData = JSON.parse(fs.readFileSync(USER_SITES_PATH, 'utf8'));
+      if (bundledData.sites && userData.sites) {
+        const bundledKimi = bundledData.sites.find(s => s.id === 'kimi');
+        if (bundledKimi) {
+          const userKimiIdx = userData.sites.findIndex(s => s.id === 'kimi');
+          if (userKimiIdx !== -1) {
+            userData.sites[userKimiIdx].url = bundledKimi.url;
+            userData.sites[userKimiIdx].enabled = true;
+            const [kimiSite] = userData.sites.splice(userKimiIdx, 1);
+            userData.sites.unshift(kimiSite);
+          } else {
+            userData.sites.unshift(bundledKimi);
+          }
+          fs.writeFileSync(USER_SITES_PATH, JSON.stringify(userData, null, 2), 'utf8');
+        }
+      }
+    } catch (e) {
+      console.error('Error updating user sites config:', e);
     }
   }
 }

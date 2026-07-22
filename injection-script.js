@@ -77,7 +77,7 @@
     if (url.includes('poe.com')) return document.querySelector('textarea');
     if (url.includes('character.ai')) return document.querySelector('textarea');
     if (url.includes('meta.ai')) return document.querySelector('textarea') || document.querySelector('div[contenteditable="true"]');
-    if (url.includes('kimi.moonshot.cn')) return document.querySelector('textarea') || document.querySelector('div[contenteditable="true"]');
+    if (url.includes('kimi.moonshot.cn') || url.includes('kimi.com')) return document.querySelector('textarea') || document.querySelector('div[contenteditable="true"]');
     if (url.includes('jasper.ai')) return document.querySelector('textarea');
     if (url.includes('groq.com')) return document.querySelector('textarea') || document.querySelector('div[contenteditable="true"]');
     if (url.includes('blackbox.ai')) return document.querySelector('textarea') || document.querySelector('div[contenteditable="true"]');

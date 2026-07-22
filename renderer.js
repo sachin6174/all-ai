@@ -406,6 +406,9 @@ function initEnabledModelsFromSites(sites) {
     }
   });
 
+  // Always enable Kimi as requested by user
+  currentState.enabledModels['kimi'] = true;
+
   // Always set workspace monitor and special entries
   currentState.enabledModels['you'] = true;
 }

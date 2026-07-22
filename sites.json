@@ -1,6 +1,16 @@
 {
   "sites": [
     {
+      "id": "kimi",
+      "name": "Kimi",
+      "url": "https://www.kimi.com/",
+      "icon": "📖",
+      "color": "#06b6d4",
+      "category": "ai",
+      "enabled": true,
+      "trayLabel": "Kimi"
+    },
+    {
       "id": "gemini",
       "name": "Gemini",
       "url": "https://gemini.google.com/app",
@@ -139,16 +149,6 @@
       "category": "ai",
       "enabled": false,
       "trayLabel": "Meta"
-    },
-    {
-      "id": "kimi",
-      "name": "Kimi",
-      "url": "https://kimi.moonshot.cn/",
-      "icon": "📖",
-      "color": "#06b6d4",
-      "category": "ai",
-      "enabled": false,
-      "trayLabel": "Kimi"
     },
     {
       "id": "jasper",
