@@ -266,40 +266,44 @@ body {
   gap: 16px;
   height: calc(100vh - var(--broadcast-height));
   overflow-y: auto;
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   padding-bottom: 24px;
+  /* Visible viewport height available to the rows (minus vertical padding) */
+  --grid-view-height: calc(100vh - var(--broadcast-height) - 40px);
+  /* Every row - including rows beyond the first screen when more channels are
+     enabled than the layout shows at once - keeps a usable height and the
+     grid scrolls, instead of extra rows collapsing to zero height. */
+  grid-auto-rows: max(300px, var(--grid-view-height));
 }
 
 /* Layout definitions */
 .layout-2x3 {
   grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(2, 1fr);
+  grid-auto-rows: max(300px, calc((var(--grid-view-height) - 16px) / 2));
 }
 
 .layout-2x2 {
   grid-template-columns: repeat(2, 1fr);
-  grid-template-rows: repeat(2, 1fr);
+  grid-auto-rows: max(300px, calc((var(--grid-view-height) - 16px) / 2));
 }
 
 .layout-col-3 {
   grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: 1fr;
 }
 
 .layout-col-2 {
   grid-template-columns: repeat(2, 1fr);
-  grid-template-rows: 1fr;
 }
 
 .layout-col-1 {
   grid-template-columns: 1fr;
-  grid-template-rows: 1fr;
 }
 
 /* Focus and layout states in JS switching */
 .main-workspace.single-focus-active .dashboard-grid {
   grid-template-columns: 1fr !important;
-  grid-template-rows: 1fr !important;
+  grid-auto-rows: 1fr !important;
+  height: 100vh; /* broadcast bar is hidden in single-focus view */
+  overflow: hidden;
 }
 
 .main-workspace.single-focus-active .webview-card:not(.focus-target) {
@@ -315,8 +319,9 @@ body {
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  backdrop-filter: blur(10px);
   transition: border-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+  /* Isolate each card's layout/paint so one busy channel doesn't repaint the grid */
+  contain: layout paint;
 }
 
 .webview-card:hover {
@@ -518,6 +523,13 @@ webview {
   flex-wrap: wrap;
   gap: 3px;
   align-items: center;
+  max-height: 40px;
+  overflow-y: auto;
+}
+
+/* With dozens of portals available, the tray lists only active receivers */
+.tray-badge:not(.active) {
+  display: none;
 }
 
 .tray-badge {
@@ -846,7 +858,6 @@ webview {
 @media (max-width: 1200px) {
   .layout-2x3 {
     grid-template-columns: repeat(2, 1fr) !important;
-    grid-template-rows: repeat(3, 1fr) !important;
   }
   .layout-col-3 {
     grid-template-columns: repeat(2, 1fr) !important;
@@ -856,7 +867,7 @@ webview {
 @media (max-width: 780px) {
   .layout-2x3, .layout-2x2, .layout-col-3, .layout-col-2 {
     grid-template-columns: 1fr !important;
-    grid-template-rows: repeat(auto-fill, minmax(280px, 1fr)) !important;
+    grid-auto-rows: max(280px, var(--grid-view-height)) !important;
   }
 }
 

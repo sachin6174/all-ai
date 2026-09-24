@@ -24,6 +24,11 @@ OmniAIChat is a cross-platform Electron desktop client that embeds multiple popu
 - Guest webviews log typed inputs via `console.log("OMNIAI_PROMPT_SUBMIT:" + text)`.
 - The parent window handles the guest logs using the webview `console-message` listener to save prompt history entries.
 
+### Sites Configuration (sites.json)
+- Sites are listed in order of global popularity; that order drives the sidebar, the dashboard grid and the `Ctrl+1..9` shortcuts.
+- After adding, removing, reordering or changing URLs of bundled sites, increment `configVersion` in [sites.json](file:///c:/Users/sachi/Desktop/all-ai/sites.json) so existing installs merge the changes into their userData copy (custom user sites are preserved).
+- Webviews are created lazily and enabled channels load a few at a time (`LOAD_CONCURRENCY` in renderer.js).
+
 ### Version Upgrades
 - When upgrading the version:
   1. Increment version in [package.json](file:///c:/Users/sachi/Desktop/all-ai/package.json) & [package-lock.json](file:///c:/Users/sachi/Desktop/all-ai/package-lock.json) (e.g. using `npm version <major/minor/patch> --no-git-tag-version`).

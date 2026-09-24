@@ -29,29 +29,44 @@
     return true;
   }
 
+  // Hostname match helper: exact domain or any subdomain of it. Plain
+  // substring checks on the URL (e.g. 'pi.ai', 'z.ai') matched unrelated sites.
+  const host = window.location.hostname;
+  function onHost(...domains) {
+    return domains.some(d => host === d || host.endsWith('.' + d));
+  }
+
+  function isVisible(el) {
+    return !!el && el.offsetWidth > 0 && el.offsetHeight > 0;
+  }
+
+  function firstVisible(selector) {
+    return Array.from(document.querySelectorAll(selector)).find(isVisible) || null;
+  }
+
   // Function to find and click "New Chat" button
   function clickNewChat() {
-    const url = window.location.href;
     let newChatBtn = null;
 
-    if (url.includes('chatgpt.com')) newChatBtn = document.querySelector('a[href="/"]') || document.querySelector('[data-testid="sidebar-new-chat-button"]');
-    else if (url.includes('claude.ai')) newChatBtn = document.querySelector('a[href="/new"]') || document.querySelector('a[href="/chat/new"]');
-    else if (url.includes('perplexity.ai')) newChatBtn = document.querySelector('button[aria-label="New Thread"]');
-    else if (url.includes('gemini.google.com')) newChatBtn = document.querySelector('a[href="/app"]');
-    else if (url.includes('deepseek.com')) newChatBtn = document.querySelector('div[role="button"][aria-label*="New"]');
-    else if (url.includes('pi.ai')) newChatBtn = document.querySelector('button[aria-label*="new thread" i]');
+    if (onHost('chatgpt.com')) newChatBtn = document.querySelector('[data-testid="create-new-chat-button"]') || document.querySelector('[data-testid="sidebar-new-chat-button"]') || document.querySelector('a[href="/"]');
+    else if (onHost('claude.ai')) newChatBtn = document.querySelector('a[href="/new"]') || document.querySelector('a[href="/chat/new"]');
+    else if (onHost('perplexity.ai')) newChatBtn = document.querySelector('button[aria-label="New Thread"]');
+    else if (onHost('gemini.google.com')) newChatBtn = document.querySelector('a[href="/app"]');
+    else if (onHost('deepseek.com')) newChatBtn = document.querySelector('div[role="button"][aria-label*="New"]');
+    else if (onHost('pi.ai')) newChatBtn = document.querySelector('button[aria-label*="new thread" i]');
 
     if (!newChatBtn) {
       const linksAndBtns = Array.from(document.querySelectorAll('a, button, div[role="button"]'));
       newChatBtn = linksAndBtns.find(el => {
-        const text = (el.textContent || '').toLowerCase();
+        const text = (el.textContent || '').trim().toLowerCase();
         const aria = (el.getAttribute('aria-label') || '').toLowerCase();
-        return (text.includes('new chat') || text.includes('new thread') || aria.includes('new chat') || aria.includes('new thread')) 
-               && el.offsetHeight > 0 && el.offsetWidth > 0;
+        return text.length < 40 &&
+               (text.includes('new chat') || text.includes('new thread') || aria.includes('new chat') || aria.includes('new thread'))
+               && isVisible(el);
       });
     }
 
-    if (newChatBtn) {
+    if (newChatBtn && isVisible(newChatBtn)) {
       console.log("OmniAI: Clicking New Chat button...", newChatBtn);
       clickButton(newChatBtn);
       return true;
@@ -59,73 +74,68 @@
     return false;
   }
 
+  // Site-specific input selectors (tried in order; first visible match wins)
+  const INPUT_SELECTORS = [
+    [['chatgpt.com'], ['#prompt-textarea', 'div[contenteditable="true"]', 'textarea']],
+    [['gemini.google.com'], ['rich-textarea div[contenteditable="true"]', 'div[contenteditable="true"]']],
+    [['claude.ai'], ['div[contenteditable="true"].ProseMirror', 'div[contenteditable="true"]']],
+    [['deepseek.com'], ['#chat-input', 'textarea']],
+    [['grok.com'], ['textarea', 'div[contenteditable="true"]']],
+    [['perplexity.ai'], ['#ask-input', 'textarea', 'div[contenteditable="true"]']],
+    [['copilot.microsoft.com'], ['#userInput', 'textarea', '#searchbar']],
+    [['duckduckgo.com', 'duck.ai'], ['textarea[name="user-prompt"]', 'textarea', 'input[type="text"]']],
+    [['google.com'], ['textarea[name="q"]', 'textarea', 'div[contenteditable="true"]']],
+    [['pi.ai'], ['textarea', 'input[type="text"]']],
+    [['character.ai', 'poe.com', 'huggingface.co', 'phind.com', 'chat.mistral.ai', 'qwen.ai', 'qwenlm.ai'], ['textarea', 'div[contenteditable="true"]']],
+  ];
+
   // Find the text input area based on specific site heuristics
   function findInput() {
-    const url = window.location.href;
-
-    if (url.includes('chatgpt.com')) return document.querySelector('#prompt-textarea');
-    if (url.includes('gemini.google.com')) return document.querySelector('div[contenteditable="true"]') || document.querySelector('rich-textarea');
-    if (url.includes('claude.ai')) return document.querySelector('div[contenteditable="true"]');
-    if (url.includes('grok.com')) return document.querySelector('textarea') || document.querySelector('div[contenteditable="true"]');
-    if (url.includes('deepseek.com')) return document.querySelector('#chat-input') || document.querySelector('textarea');
-    if (url.includes('qwenlm.ai')) return document.querySelector('textarea');
-    if (url.includes('copilot.microsoft.com')) return document.querySelector('textarea') || document.querySelector('#searchbar');
-    if (url.includes('perplexity.ai')) return document.querySelector('textarea');
-    if (url.includes('chat.mistral.ai')) return document.querySelector('textarea');
-    if (url.includes('pi.ai')) return document.querySelector('textarea') || document.querySelector('input');
-    if (url.includes('you.com')) return document.querySelector('textarea');
-    if (url.includes('poe.com')) return document.querySelector('textarea');
-    if (url.includes('character.ai')) return document.querySelector('textarea');
-    if (url.includes('meta.ai')) return document.querySelector('textarea') || document.querySelector('div[contenteditable="true"]');
-    if (url.includes('kimi.moonshot.cn') || url.includes('kimi.com')) return document.querySelector('textarea') || document.querySelector('div[contenteditable="true"]');
-    if (url.includes('jasper.ai')) return document.querySelector('textarea');
-    if (url.includes('groq.com')) return document.querySelector('textarea') || document.querySelector('div[contenteditable="true"]');
-    if (url.includes('blackbox.ai')) return document.querySelector('textarea') || document.querySelector('div[contenteditable="true"]');
-    if (url.includes('cohere.com')) return document.querySelector('textarea') || document.querySelector('div[contenteditable="true"]');
-    if (url.includes('openrouter.ai')) return document.querySelector('textarea') || document.querySelector('div[contenteditable="true"]');
-    if (url.includes('phind.com')) return document.querySelector('textarea');
-    if (url.includes('huggingface.co')) return document.querySelector('textarea');
-    if (url.includes('duckduckgo.com')) return document.querySelector('input[type="text"]') || document.querySelector('textarea');
-    if (url.includes('z.ai')) return document.querySelector('textarea') || document.querySelector('div[contenteditable="true"]');
-
-    const contentEditables = Array.from(document.querySelectorAll('div[contenteditable="true"]'));
-    if (contentEditables.length > 0) {
-      const visible = contentEditables.find(el => el.offsetWidth > 0 && el.offsetHeight > 0);
-      if (visible) return visible;
+    for (const [domains, selectors] of INPUT_SELECTORS) {
+      if (!onHost(...domains)) continue;
+      for (const selector of selectors) {
+        const el = firstVisible(selector);
+        if (el) return el;
+      }
     }
 
-    const textareas = Array.from(document.querySelectorAll('textarea'));
-    if (textareas.length > 0) {
-      const visible = textareas
-        .filter(el => el.offsetWidth > 0 && el.offsetHeight > 0)
-        .sort((a, b) => (b.offsetWidth * b.offsetHeight) - (a.offsetWidth * a.offsetHeight))[0];
-      if (visible) return visible;
-    }
+    // Generic fallback: visible contenteditable, then the largest visible textarea
+    const editable = firstVisible('div[contenteditable="true"], [contenteditable="plaintext-only"]');
+    if (editable) return editable;
 
-    return document.querySelector('input[type="text"]');
+    const textarea = Array.from(document.querySelectorAll('textarea'))
+      .filter(isVisible)
+      .sort((a, b) => (b.offsetWidth * b.offsetHeight) - (a.offsetWidth * a.offsetHeight))[0];
+    if (textarea) return textarea;
+
+    return firstVisible('input[type="text"], input:not([type])');
   }
 
   // Find the send button
   function findSendButton(inputElement) {
-    const url = window.location.href;
-
-    if (url.includes('chatgpt.com')) return document.querySelector('[data-testid="send-button"]') || document.querySelector('button.mb-1');
-    if (url.includes('gemini.google.com')) return document.querySelector('button[aria-label="Send message"]') || document.querySelector('.send-button');
-    if (url.includes('claude.ai')) return document.querySelector('button[aria-label="Send Message"]') || document.querySelector('button.bg-accent');
-    if (url.includes('deepseek.com')) return document.querySelector('div[role="button"]') || document.querySelector('button[aria-label="Send Message"]');
-    if (url.includes('phind.com')) return document.querySelector('button[type="submit"]');
-    if (url.includes('huggingface.co')) return document.querySelector('button[type="submit"]');
-    if (url.includes('duckduckgo.com')) return document.querySelector('button[type="submit"]');
+    let btn = null;
+    if (onHost('chatgpt.com')) btn = document.querySelector('[data-testid="send-button"]') || document.querySelector('#composer-submit-button');
+    else if (onHost('gemini.google.com')) btn = document.querySelector('button[aria-label="Send message"]') || document.querySelector('.send-button');
+    else if (onHost('claude.ai')) btn = document.querySelector('button[aria-label="Send message"]') || document.querySelector('button[aria-label="Send Message"]');
+    else if (onHost('perplexity.ai')) btn = document.querySelector('button[aria-label="Submit"]') || document.querySelector('button[data-testid="submit-button"]');
+    if (btn) return btn;
 
     if (inputElement) {
       let parent = inputElement.parentElement;
-      for (let i = 0; i < 5 && parent; i++) {
-        const btn = parent.querySelector('button[type="submit"], button[aria-label*="send" i], button[aria-label*="submit" i]');
-        if (btn && btn !== inputElement && !btn.disabled) return btn;
+      for (let i = 0; i < 6 && parent; i++) {
+        const candidate = parent.querySelector(
+          'button[type="submit"], button[aria-label*="send" i], button[aria-label*="submit" i], ' +
+          'button[data-testid*="send" i], button[title*="send" i]'
+        );
+        if (candidate && candidate !== inputElement) return candidate;
         parent = parent.parentElement;
       }
     }
     return null;
+  }
+
+  function isButtonDisabled(btn) {
+    return btn.disabled || btn.getAttribute('aria-disabled') === 'true';
   }
 
   // Main input setting function
@@ -148,8 +158,9 @@
       input.dispatchEvent(new Event('input', { bubbles: true }));
       input.dispatchEvent(new Event('change', { bubbles: true }));
       return true;
-    } else if (input.getAttribute('contenteditable') === 'true' || input.tagName === 'RICH-TEXTAREA') {
-      input.innerHTML = '';
+    } else if (input.isContentEditable || input.tagName === 'RICH-TEXTAREA') {
+      // Select existing content and replace it via insertText; wiping innerHTML
+      // first corrupts editor state in ProseMirror/Lexical based inputs
       try {
         const selection = window.getSelection();
         const range = document.createRange();
@@ -186,27 +197,37 @@
       return;
     }
 
-    // Wait briefly for react/framework states to synchronize before submit
-    setTimeout(() => {
+    // Wait for react/framework state to enable the send button, then submit.
+    // Polls instead of a single fixed delay: fast sites submit immediately,
+    // slow ones still get up to ~2.5s.
+    let attempts = 0;
+    const trySubmit = () => {
       const sendBtn = findSendButton(inputEl);
-      if (sendBtn && !sendBtn.disabled && clickButton(sendBtn)) {
+      if (sendBtn && !isButtonDisabled(sendBtn)) {
+        clickButton(sendBtn);
         console.log("OmniAI: Prompt submitted via send button click.");
-      } else {
-        // Fallback: Dispatch comprehensive Enter keypress on the input element
-        console.log("OmniAI: Send button not found or click failed. Simulating Enter keypress.");
-        const enterDown = new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true, cancelable: true });
-        const enterPress = new KeyboardEvent('keypress', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true, cancelable: true });
-        const enterUp = new KeyboardEvent('keyup', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true, cancelable: true });
-        
-        if (inputEl.form) {
-          inputEl.form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-        }
-        
-        inputEl.dispatchEvent(enterDown);
-        inputEl.dispatchEvent(enterPress);
-        inputEl.dispatchEvent(enterUp);
+        return;
       }
-    }, 250);
+      // Wait for a found-but-disabled button up to ~2.5s; give up on a
+      // missing button sooner (~0.5s) and fall back to Enter
+      attempts++;
+      if (attempts < (sendBtn ? 25 : 5)) {
+        setTimeout(trySubmit, 100);
+        return;
+      }
+      // Fallback: Dispatch comprehensive Enter keypress on the input element
+      console.log("OmniAI: Send button not found or disabled. Simulating Enter keypress.");
+      const init = { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true, cancelable: true };
+      inputEl.focus();
+      const handledBySite = !inputEl.dispatchEvent(new KeyboardEvent('keydown', init));
+      inputEl.dispatchEvent(new KeyboardEvent('keypress', init));
+      inputEl.dispatchEvent(new KeyboardEvent('keyup', init));
+      // Only submit the form directly if the page didn't already handle Enter
+      if (!handledBySite && inputEl.form && typeof inputEl.form.requestSubmit === 'function') {
+        try { inputEl.form.requestSubmit(); } catch (e) {}
+      }
+    };
+    setTimeout(trySubmit, 150);
   }, didClickNewChat ? 1500 : 100);
 
 })
