@@ -58,10 +58,11 @@ function buildSidebarNav(sites) {
     const btn = document.createElement('button');
     btn.className = 'nav-item';
     btn.setAttribute('data-tab', site.id);
+    btn.title = site.name;
     btn.innerHTML = `
-      <span class="nav-icon" style="color: ${site.color}; font-size: 18px; width: 20px; text-align: center;">${site.icon}</span>
-      <span class="nav-label">${site.name}</span>
-      <span class="nav-status-dot" id="dot-${site.id}"></span>
+      <span class="nav-icon" style="color: ${safeColor(site.color)}; font-size: 18px; width: 20px; text-align: center;">${escapeHtml(site.icon)}</span>
+      <span class="nav-label">${escapeHtml(site.name)}</span>
+      <span class="nav-status-dot" id="dot-${escapeHtml(site.id)}"></span>
     `;
 
     // Add sidebar toggle checkbox for AI sites (not utilities)
@@ -100,36 +101,115 @@ function buildSidebarNav(sites) {
 // Resolve the src URL for a site (handles Gemini's authuser special case)
 function getSiteSrcUrl(site) {
   if (site.id === 'gemini') {
-    return `https://gemini.google.com/app?authuser=${currentState.geminiAuthUser}`;
+    return `https://gemini.google.com/app?authuser=${encodeURIComponent(currentState.geminiAuthUser)}`;
   }
   return site.url;
 }
 
-// Lazily navigate a webview to its real URL if it hasn't been loaded yet
-// (i.e. it was skipped at startup because it was disabled or a utility site).
-function ensureWebviewLoaded(siteId) {
-  const webview = document.getElementById(`wv-${siteId}`);
-  if (!webview || webview.getAttribute('src')) return;
-  const site = sitesConfig.find(s => s.id === siteId);
-  if (!site) return;
-  webview.setAttribute('src', getSiteSrcUrl(site));
+/* =================================================================
+   FEATURE: Lazy + Staggered Webview Loading
+   Webview elements (and their guest renderer processes) are only created
+   when a site is actually needed. Enabled channels are loaded a couple at a
+   time at startup instead of all at once, so the first channels become
+   usable much faster and the machine isn't flooded with parallel page loads.
+================================================================= */
+const LOAD_CONCURRENCY = 2;
+const LOAD_SLOT_TIMEOUT_MS = 8000;
+const loadQueue = [];
+let activeLoads = 0;
+const pendingInjections = {}; // siteId -> code to run once the guest is dom-ready
+const webviewZoomLevels = {};  // siteId -> zoom factor
+
+function getWebview(siteId) {
+  return document.getElementById(`wv-${siteId}`);
 }
 
-// Unload a webview's content to actually free its memory (renderer process,
-// JS heap, DOM, cached assets) instead of merely hiding it with CSS.
+function isWebviewReady(webview) {
+  return !!webview && webview.dataset.ready === 'true';
+}
+
+// Create the <webview> for a site (if missing) and start navigating it.
+function ensureWebviewLoaded(siteId) {
+  const queued = loadQueue.indexOf(siteId);
+  if (queued > -1) loadQueue.splice(queued, 1);
+  if (getWebview(siteId)) return getWebview(siteId);
+
+  const site = sitesConfig.find(s => s.id === siteId);
+  const card = document.getElementById(`card-${siteId}`);
+  if (!site || !card) return null;
+
+  const wrapper = card.querySelector('.webview-wrapper');
+  const loader = card.querySelector('.loader-overlay');
+  if (loader) {
+    loader.classList.remove('hidden');
+    const loaderText = loader.querySelector('span');
+    if (loaderText) loaderText.textContent = `Connecting to ${site.name}...`;
+  }
+
+  const webview = document.createElement('webview');
+  webview.id = `wv-${siteId}`;
+  webview.setAttribute('allowpopups', '');
+  webview.setAttribute('partition', 'persist:omniai_session');
+  attachWebviewEvents(site, webview, card);
+  webview.setAttribute('src', getSiteSrcUrl(site));
+  wrapper.insertBefore(webview, loader);
+  return webview;
+}
+
+// Queue a site for background loading (used for startup)
+function scheduleWebviewLoad(siteId) {
+  if (getWebview(siteId) || loadQueue.includes(siteId)) return;
+  loadQueue.push(siteId);
+  pumpLoadQueue();
+}
+
+function pumpLoadQueue() {
+  while (activeLoads < LOAD_CONCURRENCY && loadQueue.length > 0) {
+    const siteId = loadQueue.shift();
+    if (currentState.enabledModels[siteId] === false || getWebview(siteId)) continue;
+    const webview = ensureWebviewLoaded(siteId);
+    if (!webview) continue;
+
+    activeLoads++;
+    let released = false;
+    const release = () => {
+      if (released) return;
+      released = true;
+      activeLoads--;
+      pumpLoadQueue();
+    };
+    webview.addEventListener('dom-ready', release, { once: true });
+    webview.addEventListener('destroyed', release, { once: true });
+    setTimeout(release, LOAD_SLOT_TIMEOUT_MS);
+  }
+}
+
+// Remove a webview entirely - this destroys its guest process and frees all
+// of its memory, rather than just hiding it with CSS.
 function unloadWebview(siteId) {
-  const webview = document.getElementById(`wv-${siteId}`);
-  if (!webview || !webview.getAttribute('src')) return;
-  webview.setAttribute('src', 'about:blank');
+  const queued = loadQueue.indexOf(siteId);
+  if (queued > -1) loadQueue.splice(queued, 1);
+  delete pendingInjections[siteId];
+
+  const webview = getWebview(siteId);
+  if (!webview) return;
+  webview.dispatchEvent(new Event('destroyed'));
+  webview.remove();
+
+  const dot = document.getElementById(`dot-${siteId}`);
+  if (dot) dot.className = 'nav-status-dot';
+  const card = document.getElementById(`card-${siteId}`);
+  const loader = card ? card.querySelector('.loader-overlay') : null;
+  if (loader) loader.classList.remove('hidden');
 }
 
 // 2. Build webview cards
 function buildWebviewCards(sites) {
-  // Preserve the Workspace Monitor widget (card-you)
-  const widgetCard = document.getElementById('card-you');
-  
+  // Preserve the Workspace Monitor widget
+  const widgetCard = document.getElementById('card-workspace-monitor');
+
   // Remove all existing dynamic cards (everything except the widget)
-  const existingCards = webviewContainer.querySelectorAll('.webview-card:not(#card-you)');
+  const existingCards = webviewContainer.querySelectorAll('.webview-card:not(#card-workspace-monitor)');
   existingCards.forEach(card => card.remove());
 
   sites.forEach(site => {
@@ -139,7 +219,6 @@ function buildWebviewCards(sites) {
     card.setAttribute('data-model', site.id);
 
     // Card header with action buttons
-    const isUtility = site.category === 'utility';
     const actionButtons = `
       <button class="action-btn btn-back" title="Back"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
       <button class="action-btn btn-forward" title="Forward"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
@@ -149,26 +228,18 @@ function buildWebviewCards(sites) {
       <button class="action-btn btn-zoom-out" title="Zoom Out"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></button>
     `;
 
-    // Determine the src URL (special case: Gemini with authuser)
-    const srcUrl = getSiteSrcUrl(site);
-
-    // MEMORY OPTIMIZATION: only eager-load webviews that are actually enabled AI
-    // channels. Utility sites (Google Login) and disabled models stay unloaded
-    // (no src = no guest renderer process spun up) until the user actually
-    // navigates to them or re-enables them. See ensureWebviewLoaded/unloadWebview.
-    const isEnabled = currentState.enabledModels[site.id] !== false;
-    const shouldEagerLoad = site.category !== 'utility' && isEnabled;
-
+    // The <webview> itself is created lazily by ensureWebviewLoaded() - see
+    // FEATURE: Lazy + Staggered Webview Loading.
     card.innerHTML = `
       <div class="card-header">
-        <div class="model-info"><span class="status-indicator ready"></span><span class="model-name">${site.name}</span></div>
+        <div class="model-info"><span class="status-indicator"></span><span class="model-name">${escapeHtml(site.name)}</span></div>
         <div class="card-actions">${actionButtons}</div>
       </div>
       <div class="webview-wrapper">
-        <webview allowpopups id="wv-${site.id}" ${shouldEagerLoad ? `src="${srcUrl}"` : ''} partition="persist:omniai_session"></webview>
-        <div class="loader-overlay"><div class="spinner"></div><span>Connecting to ${site.name}...</span></div>
+        <div class="loader-overlay"><div class="spinner"></div><span>Waiting to connect to ${escapeHtml(site.name)}...</span></div>
       </div>
     `;
+    attachCardControls(site, card);
 
     // Insert before the widget card (so widget stays at end)
     if (widgetCard) {
@@ -190,8 +261,8 @@ function buildSettingsToggles(sites) {
     const label = document.createElement('label');
     label.className = 'toggle-control';
     label.innerHTML = `
-      <input type="checkbox" id="toggle-${site.id}" ${currentState.enabledModels[site.id] !== false ? 'checked' : ''}>
-      <span class="toggle-label">${site.name}</span>
+      <input type="checkbox" id="toggle-${escapeHtml(site.id)}" ${currentState.enabledModels[site.id] !== false ? 'checked' : ''}>
+      <span class="toggle-label">${escapeHtml(site.name)}</span>
     `;
     
     const checkbox = label.querySelector('input');
@@ -223,8 +294,8 @@ function buildSessionResets(sites) {
     }
 
     row.innerHTML = `
-      <span>${site.name}</span>
-      <button class="btn btn-danger" data-clear="${site.id}" data-origin="${origin}">Reset ${site.name}</button>
+      <span>${escapeHtml(site.name)}</span>
+      <button class="btn btn-danger" data-clear="${escapeHtml(site.id)}" data-origin="${escapeHtml(origin)}">Reset ${escapeHtml(site.name)}</button>
     `;
     container.appendChild(row);
   });
@@ -271,12 +342,10 @@ function buildSessionResets(sites) {
           alert(`Session cleared successfully. Reloading view...`);
           if (clearTarget === 'all') {
             // Only reload webviews that actually have content loaded
-            document.querySelectorAll('webview').forEach(wv => {
-              if (wv.getAttribute('src')) wv.reload();
-            });
+            document.querySelectorAll('webview').forEach(wv => wv.reload());
           } else {
-            const wv = document.getElementById(`wv-${clearTarget}`);
-            if (wv && wv.getAttribute('src')) wv.reload();
+            const wv = getWebview(clearTarget);
+            if (wv) wv.reload();
           }
         } else {
           alert(`Failed to clear session: ${result.error || 'Unknown error'}`);
@@ -319,11 +388,10 @@ function toggleModelEnabled(modelId, isEnabled) {
     unloadWebview(modelId);
   }
 
-  // Update Card visibility
+  // Update Card visibility (the focused card stays visible in single-focus view)
   const card = document.getElementById(`card-${modelId}`);
   if (card && !card.classList.contains('card-utility')) {
-    if (isEnabled) card.classList.remove('card-disabled');
-    else card.classList.add('card-disabled');
+    card.classList.toggle('card-disabled', !isEnabled && currentState.activeTab !== modelId);
   }
 
   // Update Nav status dot
@@ -375,9 +443,8 @@ function loadConfig() {
       currentState = { ...currentState, ...parsed };
       currentState.enabledModels = { ...currentState.enabledModels, ...loadedEnabledModels };
       
-      if (!currentState.promptsHistory) {
-        currentState.promptsHistory = [];
-      }
+      if (!Array.isArray(currentState.promptsHistory)) currentState.promptsHistory = [];
+      if (!Array.isArray(currentState.broadcastHistory)) currentState.broadcastHistory = [];
     } catch (e) {
       console.error('Error loading config:', e);
     }
@@ -406,11 +473,9 @@ function initEnabledModelsFromSites(sites) {
     }
   });
 
-  // Always enable Kimi as requested by user
-  currentState.enabledModels['kimi'] = true;
-
-  // Always set workspace monitor and special entries
-  currentState.enabledModels['you'] = true;
+  // Legacy: 'you' used to be force-enabled for the Workspace Monitor widget,
+  // which collided with the You.com site id. Drop it (You.com is now 'youcom').
+  delete currentState.enabledModels['you'];
 }
 
 
@@ -475,7 +540,15 @@ function initUI() {
   // 4. Setup active tab
   switchTab(currentState.activeTab);
 
-  // 5. Update workspace monitor widget
+  // 5. Start loading enabled AI channels in the background, a few at a time,
+  // in sidebar (popularity) order
+  sitesConfig.forEach(site => {
+    if (site.category === 'ai' && currentState.enabledModels[site.id] !== false) {
+      scheduleWebviewLoad(site.id);
+    }
+  });
+
+  // 6. Update workspace monitor widget
   updateWorkspaceWidget();
 }
 
@@ -493,9 +566,16 @@ function switchTab(tabId) {
     }
   });
 
-  // Reset workspace focus states
+  // Reset workspace focus states (and re-hide disabled models that were
+  // temporarily shown while focused)
   mainWorkspace.classList.remove('single-focus-active');
-  document.querySelectorAll('.webview-card').forEach(card => card.classList.remove('focus-target'));
+  document.querySelectorAll('.webview-card').forEach(card => {
+    card.classList.remove('focus-target');
+    const model = card.getAttribute('data-model');
+    if (model && sitesConfig.some(s => s.id === model && s.category === 'ai')) {
+      card.classList.toggle('card-disabled', currentState.enabledModels[model] === false);
+    }
+  });
 
   const promptsHistoryPane = document.getElementById('prompts-history-pane');
 
@@ -535,8 +615,9 @@ function switchTab(tabId) {
       targetCard.classList.add('focus-target');
       // Ensure target is not hidden by dashboard toggles
       targetCard.classList.remove('card-disabled');
-      // Lazily load it if it was skipped at startup (utility site or disabled model)
-      ensureWebviewLoaded(tabId);
+      // Load it right away if it hasn't been loaded yet (utility site, disabled
+      // model, or still waiting in the startup queue)
+      if (tabId !== 'workspace-monitor') ensureWebviewLoaded(tabId);
     }
   }
 }
@@ -566,138 +647,126 @@ function updateLayoutClass(layoutName) {
   }
 }
 
-// Attach lifecycle events to all webviews in the app
-function setupWebviewEvents() {
-  sitesConfig.forEach(site => {
-    const webview = document.getElementById(`wv-${site.id}`);
-    const card = document.getElementById(`card-${site.id}`);
-    if (!webview || !card) return;
+// Card header controls (back/forward/reload/focus/zoom). They look up the
+// webview at click time because it is created lazily.
+function attachCardControls(site, card) {
+  const withWebview = (fn) => () => {
+    const webview = getWebview(site.id);
+    if (isWebviewReady(webview)) fn(webview);
+  };
 
-    const loader = card.querySelector('.loader-overlay');
-    const dot = document.getElementById(`dot-${site.id}`);
+  card.querySelector('.btn-back')?.addEventListener('click', withWebview(wv => {
+    if (wv.canGoBack()) wv.goBack();
+  }));
+  card.querySelector('.btn-forward')?.addEventListener('click', withWebview(wv => {
+    if (wv.canGoForward()) wv.goForward();
+  }));
+  card.querySelector('.btn-reload')?.addEventListener('click', () => {
+    const webview = getWebview(site.id);
+    if (webview) webview.reload();
+    else ensureWebviewLoaded(site.id);
+  });
+  card.querySelector('.btn-focus')?.addEventListener('click', () => {
+    switchTab(currentState.activeTab === site.id ? 'dashboard' : site.id);
+  });
 
-    // Loading started
-    webview.addEventListener('did-start-loading', () => {
-      if (loader) loader.classList.remove('hidden');
-      if (dot) {
-        dot.className = 'nav-status-dot loading';
-      }
-    });
+  const applyZoom = (delta) => withWebview(wv => {
+    webviewZoomLevels[site.id] = Math.min(3.0, Math.max(0.3, (webviewZoomLevels[site.id] || 1.0) + delta));
+    wv.setZoomFactor(webviewZoomLevels[site.id]);
+  })();
+  card.querySelector('.btn-zoom-in')?.addEventListener('click', (e) => { e.stopPropagation(); applyZoom(0.1); });
+  card.querySelector('.btn-zoom-out')?.addEventListener('click', (e) => { e.stopPropagation(); applyZoom(-0.1); });
+}
 
-    // Loading stopped
-    webview.addEventListener('did-stop-loading', () => {
-      if (loader) loader.classList.add('hidden');
-      if (dot) {
-        dot.className = 'nav-status-dot active';
-      }
-    });
+// Lifecycle events for a freshly created webview
+function attachWebviewEvents(site, webview, card) {
+  const loader = card.querySelector('.loader-overlay');
+  const loaderText = loader ? loader.querySelector('span') : null;
+  const statusIndicator = card.querySelector('.status-indicator');
+  const dot = document.getElementById(`dot-${site.id}`);
 
-    // DOM Ready
-    webview.addEventListener('dom-ready', () => {
-      if (loader) loader.classList.add('hidden');
-      if (dot) {
-        dot.className = 'nav-status-dot active';
-      }
-      
-      // Inject text monitor script if not a utility card (like Google Sign-in)
-      if (site.category !== 'utility') {
-        webview.executeJavaScript(guestMonitorScript)
-          .catch(err => console.error(`[${site.id}] Monitor injection failed:`, err));
-      }
-    });
+  const setStatus = (state) => {
+    if (dot) dot.className = `nav-status-dot ${state}`;
+    if (statusIndicator) statusIndicator.className = `status-indicator ${state === 'active' ? 'ready' : state}`;
+  };
 
-    // Handle incoming prompts from console messages
+  webview.addEventListener('did-start-loading', () => setStatus('loading'));
+
+  webview.addEventListener('did-stop-loading', () => {
+    if (loader) loader.classList.add('hidden');
+    setStatus('active');
+  });
+
+  webview.addEventListener('dom-ready', () => {
+    webview.dataset.ready = 'true';
+    if (loader) loader.classList.add('hidden');
+    setStatus('active');
+
+    if (webviewZoomLevels[site.id]) webview.setZoomFactor(webviewZoomLevels[site.id]);
+
+    // Inject text monitor script if not a utility card (like Google Sign-in)
     if (site.category !== 'utility') {
-      webview.addEventListener('console-message', (e) => {
-        const msg = e.message;
-        if (msg && msg.startsWith('OMNIAI_PROMPT_SUBMIT:')) {
-          const promptText = msg.substring('OMNIAI_PROMPT_SUBMIT:'.length).trim();
-          if (promptText) {
-            addPromptToHistory(promptText, site.name);
-          }
-        }
-      });
+      webview.executeJavaScript(guestMonitorScript)
+        .catch(err => console.error(`[${site.id}] Monitor injection failed:`, err));
     }
 
-    // Load failed
-    webview.addEventListener('did-fail-load', (e) => {
-      console.error(`Webview load failed for ${site.id}:`, e);
-      if (loader) loader.classList.remove('hidden');
-      const loaderText = loader ? loader.querySelector('span') : null;
-      if (loaderText) {
-        loaderText.innerHTML = `Connection failed.<br><button class="btn" style="margin-top:8px;padding:4px 8px;font-size:11px;" onclick="document.getElementById('wv-${site.id}').reload()">Retry</button>`;
+    // Deliver a broadcast that arrived before this channel finished loading
+    const pending = pendingInjections[site.id];
+    if (pending) {
+      delete pendingInjections[site.id];
+      // Give SPA frameworks a moment to hydrate their input components
+      setTimeout(() => {
+        webview.executeJavaScript(pending)
+          .catch(err => console.error(`Failed to inject into ${site.id}:`, err));
+      }, 1500);
+    }
+  });
+
+  // Handle incoming prompts from console messages
+  if (site.category !== 'utility') {
+    webview.addEventListener('console-message', (e) => {
+      const msg = e.message;
+      if (msg && msg.startsWith('OMNIAI_PROMPT_SUBMIT:')) {
+        const promptText = msg.substring('OMNIAI_PROMPT_SUBMIT:'.length).trim();
+        if (promptText) addPromptToHistory(promptText, site.name);
       }
     });
+  }
 
-    // Card Header Controls Setup
-    const btnBack = card.querySelector('.btn-back');
-    const btnForward = card.querySelector('.btn-forward');
-    const btnReload = card.querySelector('.btn-reload');
-    const btnFocus = card.querySelector('.btn-focus');
-
-    if (btnBack) {
-      btnBack.addEventListener('click', () => {
-        if (webview.canGoBack()) webview.goBack();
-      });
-    }
-
-    if (btnForward) {
-      btnForward.addEventListener('click', () => {
-        if (webview.canGoForward()) webview.goForward();
-      });
-    }
-
-    if (btnReload) {
-      btnReload.addEventListener('click', () => {
+  // Load failed. Ignore sub-frame failures (ads, trackers, iframes) and
+  // ERR_ABORTED (-3), which fires on ordinary redirects / SPA navigations.
+  webview.addEventListener('did-fail-load', (e) => {
+    if (!e.isMainFrame || e.errorCode === -3) return;
+    console.error(`Webview load failed for ${site.id}:`, e.errorCode, e.errorDescription);
+    setStatus('');
+    if (loader) loader.classList.remove('hidden');
+    if (loaderText) {
+      loaderText.innerHTML = `Connection failed (${escapeHtml(e.errorDescription || String(e.errorCode))}).<br><button class="btn" style="margin-top:8px;padding:4px 8px;font-size:11px;">Retry</button>`;
+      loaderText.querySelector('button').addEventListener('click', () => {
+        loaderText.textContent = `Connecting to ${site.name}...`;
         webview.reload();
       });
     }
-
-    if (btnFocus) {
-      btnFocus.addEventListener('click', () => {
-        switchTab(site.id);
-      });
-    }
-
-    // Zoom controls
-    const wvId = webview.id;
-    webviewZoomLevels[wvId] = 1.0;
-
-    card.querySelector('.btn-zoom-in')?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      webviewZoomLevels[wvId] = Math.min(3.0, (webviewZoomLevels[wvId] || 1.0) + 0.1);
-      webview.setZoomFactor(webviewZoomLevels[wvId]);
-    });
-
-    card.querySelector('.btn-zoom-out')?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      webviewZoomLevels[wvId] = Math.max(0.3, (webviewZoomLevels[wvId] || 1.0) - 0.1);
-      webview.setZoomFactor(webviewZoomLevels[wvId]);
-    });
   });
+}
+
+// Injection script is read from disk once and cached (it never changes at runtime)
+let cachedInjectionScript = null;
+function getInjectionScript() {
+  if (cachedInjectionScript === null) {
+    cachedInjectionScript = fs.readFileSync(path.join(__dirname, 'injection-script.js'), 'utf8');
+  }
+  return cachedInjectionScript;
 }
 
 // Broadcast prompt execution (excludes utility windows like google)
 function executeBroadcast() {
   const prompt = broadcastInput.value.trim();
-  if (!prompt) return;
+  if (!prompt || broadcastSendBtn.disabled) return;
 
-  // Add to history
-  if (!currentState.broadcastHistory.includes(prompt)) {
-    currentState.broadcastHistory.unshift(prompt);
-    if (currentState.broadcastHistory.length > 15) {
-      currentState.broadcastHistory.pop();
-    }
-    saveConfig();
-  }
-  addPromptToHistory(prompt, 'Broadcast');
-  historyIndex = -1; // Reset cycling index
-
-  // Read the injection script code
-  let injectionScript = '';
+  let injectionScript;
   try {
-    const scriptPath = path.join(__dirname, 'injection-script.js');
-    injectionScript = fs.readFileSync(scriptPath, 'utf8');
+    injectionScript = getInjectionScript();
   } catch (err) {
     console.error('Failed to read injection-script.js:', err);
     broadcastStatus.textContent = 'Error: Cannot load injection script.';
@@ -705,56 +774,71 @@ function executeBroadcast() {
     return;
   }
 
+  // Add to history (most recent first, no duplicates)
+  const existing = currentState.broadcastHistory.indexOf(prompt);
+  if (existing > -1) currentState.broadcastHistory.splice(existing, 1);
+  currentState.broadcastHistory.unshift(prompt);
+  if (currentState.broadcastHistory.length > 15) currentState.broadcastHistory.length = 15;
+  addPromptToHistory(prompt, 'Broadcast'); // also persists config
+  historyIndex = -1; // Reset cycling index
+
   // Update Status UI
   broadcastStatus.textContent = 'Injecting prompts into active AIs...';
   broadcastStatus.className = 'broadcast-status-message working';
-  
+
   // Disable controls temporarily
   broadcastInput.disabled = true;
   broadcastSendBtn.disabled = true;
   broadcastSendBtn.style.opacity = '0.5';
 
-  let activeCount = 0;
+  const codeToRun = `(${injectionScript})(${JSON.stringify(prompt)});`;
+  let sentCount = 0;
+  let queuedCount = 0;
 
-  // Loop through sites config and inject prompt into enabled AI models
   sitesConfig.forEach(site => {
-    if (site.category === 'utility') return; // Skip utilities
-    const isEnabled = currentState.enabledModels[site.id];
-    if (!isEnabled) return;
+    if (site.category === 'utility') return;
+    if (currentState.enabledModels[site.id] === false) return;
 
-    const webview = document.getElementById(`wv-${site.id}`);
-    if (webview) {
-      activeCount++;
-      const codeToRun = `(${injectionScript})(${JSON.stringify(prompt)});`;
-      
+    const webview = getWebview(site.id);
+    if (isWebviewReady(webview)) {
+      sentCount++;
       webview.executeJavaScript(codeToRun)
-        .then(result => {
-          console.log(`Successfully injected into ${site.id}:`, result);
-        })
-        .catch(err => {
-          console.error(`Failed to inject into ${site.id}:`, err);
-        });
+        .catch(err => console.error(`Failed to inject into ${site.id}:`, err));
+    } else {
+      // Channel still loading (or queued) - deliver as soon as it is ready
+      queuedCount++;
+      pendingInjections[site.id] = codeToRun;
+      ensureWebviewLoaded(site.id);
     }
   });
 
-  // Finish broadcast
   setTimeout(() => {
     broadcastInput.value = '';
     broadcastInput.disabled = false;
     broadcastSendBtn.disabled = false;
     broadcastSendBtn.style.opacity = '1';
-    
-    broadcastStatus.textContent = `Successfully broadcasted to ${activeCount} active AI channels!`;
+    broadcastInput.focus();
+
+    const total = sentCount + queuedCount;
+    if (total === 0) {
+      broadcastStatus.textContent = 'No active AI channels - enable some in Settings.';
+      broadcastStatus.className = 'broadcast-status-message danger';
+      return;
+    }
+    broadcastStatus.textContent = queuedCount > 0
+      ? `Broadcasted to ${sentCount} AI channels (${queuedCount} more once they finish loading).`
+      : `Successfully broadcasted to ${sentCount} active AI channels!`;
     broadcastStatus.className = 'broadcast-status-message success';
-    
-    // Clear success message after 4 seconds
+    notifyBroadcastDone();
+
+    const doneText = broadcastStatus.textContent;
     setTimeout(() => {
-      if (broadcastStatus.textContent.includes('Successfully broadcasted')) {
+      if (broadcastStatus.textContent === doneText) {
         broadcastStatus.textContent = 'Ready to broadcast';
         broadcastStatus.className = 'broadcast-status-message';
       }
     }, 4000);
-  }, 800);
+  }, 400);
 }
 
 // Event Listeners Setup
@@ -796,10 +880,9 @@ function setupListeners() {
 
       // Update webview src dynamically (only if Gemini is actually loaded/enabled -
       // setAttribute already triggers navigation, no need to also call .reload())
-      const wvGemini = document.getElementById('wv-gemini');
-      if (wvGemini && wvGemini.getAttribute('src')) {
-        wvGemini.setAttribute('src', `https://gemini.google.com/app?authuser=${value}`);
-        console.log(`Switched Gemini to Google account index: ${value}`);
+      const wvGemini = getWebview('gemini');
+      if (wvGemini) {
+        wvGemini.setAttribute('src', `https://gemini.google.com/app?authuser=${encodeURIComponent(value)}`);
       }
 
       saveConfig();
@@ -870,6 +953,7 @@ function setupListeners() {
   window.addEventListener('keydown', (e) => {
     // Skip if writing in a text input/textarea (checkboxes/radios should not block hotkeys)
     const activeEl = document.activeElement;
+    if (!activeEl) return;
     const isTextInput = activeEl.tagName === 'TEXTAREA' ||
       (activeEl.tagName === 'INPUT' && !['checkbox', 'radio', 'button'].includes(activeEl.type)) ||
       activeEl.getAttribute('contenteditable') === 'true';
@@ -890,9 +974,6 @@ function setupListeners() {
       } else if (e.key.toLowerCase() === 'b') {
         e.preventDefault();
         toggleSidebar();
-      } else if (e.key.toLowerCase() === 'k') {
-        e.preventDefault();
-        openCmdPalette();
       } else if (e.key >= '1' && e.key <= '9') {
         e.preventDefault();
         const index = parseInt(e.key) - 1;
@@ -965,14 +1046,13 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   // Initialize the app
   initUI();
-  setupWebviewEvents();
   setupListeners();
+  initWorkspaceMonitorCard();
   initSidebarCollapse();
   initSidebarSearch();
   initCmdPalette();
   initTemplates();
   initAlwaysOnTop();
-  initBroadcastEnhancements();
   initSitesEditor();
   initMacPlatformReplacements();
 });
@@ -981,7 +1061,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 /* =================================================================
    FEATURE: Sidebar Collapse
 ================================================================= */
-let sidebarCollapsed = JSON.parse(localStorage.getItem('omniai_sidebar_collapsed') || 'false');
+let sidebarCollapsed = safeParseJSON(localStorage.getItem('omniai_sidebar_collapsed'), false) === true;
 const sidebar = document.querySelector('.sidebar');
 
 function toggleSidebar() {
@@ -1035,12 +1115,18 @@ function buildCmdItems() {
     { label: 'Broadcast',        badge: 'Ctrl+↵', icon: '📡',  action: () => document.getElementById('broadcast-send-btn').click() },
   ];
 
-  const siteItems = sitesConfig.map((site, i) => ({
-    label: site.name,
-    badge: site.category === 'ai' && i < 9 ? `Ctrl+${i+1}` : '',
-    icon: site.icon,
-    action: () => switchTab(site.id)
-  }));
+  const isMac = (typeof process !== 'undefined' && process.platform === 'darwin');
+  const mod = isMac ? '⌘' : 'Ctrl+';
+  const aiIds = sitesConfig.filter(s => s.category === 'ai').map(s => s.id);
+  const siteItems = sitesConfig.map(site => {
+    const aiIndex = aiIds.indexOf(site.id);
+    return {
+      label: site.name,
+      badge: aiIndex > -1 && aiIndex < 9 ? `${mod}${aiIndex + 1}` : '',
+      icon: site.icon,
+      action: () => switchTab(site.id)
+    };
+  });
 
   return [...staticItems, ...siteItems];
 }
@@ -1068,7 +1154,7 @@ function renderCmdResults(query) {
   currentCmdItems.forEach((item, idx) => {
     const el = document.createElement('div');
     el.className = 'cmd-item' + (idx === 0 ? ' highlighted' : '');
-    el.innerHTML = `<span>${item.icon}</span><span>${item.label}</span>${item.badge ? `<span class="cmd-item-badge">${item.badge}</span>` : ''}`;
+    el.innerHTML = `<span>${escapeHtml(item.icon)}</span><span>${escapeHtml(item.label)}</span>${item.badge ? `<span class="cmd-item-badge">${escapeHtml(item.badge)}</span>` : ''}`;
     el.addEventListener('click', () => { item.action(); closeCmdPalette(); });
     container.appendChild(el);
   });
@@ -1087,6 +1173,7 @@ function initCmdPalette() {
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') { closeCmdPalette(); return; }
     const items = document.querySelectorAll('.cmd-item');
+    if (items.length === 0) return;
     if (e.key === 'ArrowDown') {
       e.preventDefault();
       items[cmdHighlightIndex]?.classList.remove('highlighted');
@@ -1124,7 +1211,7 @@ function initCmdPalette() {
 /* =================================================================
    FEATURE: Prompt Templates
 ================================================================= */
-let promptTemplates = JSON.parse(localStorage.getItem('omniai_templates') || '[]');
+let promptTemplates = safeParseJSON(localStorage.getItem('omniai_templates'), []);
 
 function saveTemplates() {
   localStorage.setItem('omniai_templates', JSON.stringify(promptTemplates));
@@ -1196,14 +1283,6 @@ function initTemplates() {
 
 
 /* =================================================================
-   FEATURE: Per-Webview Zoom Controls
-================================================================= */
-const webviewZoomLevels = {};
-
-// Zoom controls are initialized inside setupWebviewEvents() for dynamic cards
-
-
-/* =================================================================
    FEATURE: Always On Top
 ================================================================= */
 let isAlwaysOnTop = false;
@@ -1218,15 +1297,23 @@ async function toggleAlwaysOnTop() {
 
 function initAlwaysOnTop() {
   document.getElementById('always-on-top-btn').addEventListener('click', toggleAlwaysOnTop);
+  ipcRenderer.invoke('get-always-on-top').then(({ alwaysOnTop }) => {
+    isAlwaysOnTop = !!alwaysOnTop;
+    const btn = document.getElementById('always-on-top-btn');
+    btn.classList.toggle('active', isAlwaysOnTop);
+  }).catch(() => {});
 }
 
 
 /* =================================================================
    FEATURE: Broadcast Sound + Flash Notification
 ================================================================= */
+let broadcastAudioCtx = null;
 function playBroadcastDoneSound() {
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    // Reuse one AudioContext - browsers cap how many can exist at once
+    if (!broadcastAudioCtx) broadcastAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = broadcastAudioCtx;
     const times = [0, 0.12, 0.24];
     const freqs = [523, 659, 784]; // C5, E5, G5 major chord arpeggio
     times.forEach((t, i) => {
@@ -1244,24 +1331,10 @@ function playBroadcastDoneSound() {
   } catch (e) { /* audio not available */ }
 }
 
-function initBroadcastEnhancements() {
-  // Observe broadcast status changes to trigger sound + flash
-  const observer = new MutationObserver((mutations) => {
-    mutations.forEach(m => {
-      if (m.type === 'characterData' || m.type === 'childList') {
-        const text = broadcastStatus.textContent || '';
-        if (text.toLowerCase().includes('done') || text.toLowerCase().includes('complete') || text.toLowerCase().includes('sent')) {
-          playBroadcastDoneSound();
-          const panel = document.getElementById('broadcast-panel');
-          panel.classList.add('flash');
-          setTimeout(() => panel.classList.remove('flash'), 800);
-        }
-      }
-    });
-  });
-  if (broadcastStatus) {
-    observer.observe(broadcastStatus, { characterData: true, childList: true, subtree: true });
-  }
+function notifyBroadcastDone() {
+  playBroadcastDoneSound();
+  broadcastPanel.classList.add('flash');
+  setTimeout(() => broadcastPanel.classList.remove('flash'), 800);
 }
 
 /* =================================================================
@@ -1301,49 +1374,53 @@ function initMacPlatformReplacements() {
 ================================================================= */
 const guestMonitorScript = `
   (function() {
-    if (window.hasOwnProperty('__omniai_monitor_active')) return;
+    if (window.__omniai_monitor_active) return;
     window.__omniai_monitor_active = true;
-    
+
     let lastTypedText = '';
-    
+    let lastReported = '';
+    let lastReportedAt = 0;
+
+    const report = () => {
+      const text = lastTypedText.trim();
+      if (!text) return;
+      // Enter + send-button click for the same submit would otherwise double-log
+      const now = Date.now();
+      if (text === lastReported && now - lastReportedAt < 2000) return;
+      lastReported = text;
+      lastReportedAt = now;
+      lastTypedText = '';
+      console.log("OMNIAI_PROMPT_SUBMIT:" + text);
+    };
+
     // Monitor inputs and updates on textareas/editable divs
     document.addEventListener('input', (e) => {
       const el = e.target;
-      if (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') {
+      if (!el || !el.tagName) return;
+      if (el.tagName === 'TEXTAREA' || (el.tagName === 'INPUT' && (el.type === 'text' || el.type === 'search'))) {
         lastTypedText = el.value;
-      } else if (el.getAttribute('contenteditable') === 'true') {
+      } else if (el.isContentEditable) {
         lastTypedText = el.innerText;
       }
     }, true);
-    
-    // Listen to Enter key submissions
+
+    // Listen to Enter key submissions (ignore IME composition)
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        const text = lastTypedText.trim();
-        if (text) {
-          console.log("OMNIAI_PROMPT_SUBMIT:" + text);
-        }
-      }
+      if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) report();
     }, true);
-    
+
     // Listen to Send button clicks
     document.addEventListener('click', (e) => {
-      const btn = e.target.closest('button, [role="button"], a');
-      if (btn) {
-        const isSendBtn = btn.querySelector('svg') || 
-                         btn.getAttribute('aria-label')?.toLowerCase().includes('send') ||
-                         btn.getAttribute('aria-label')?.toLowerCase().includes('submit') ||
-                         btn.className?.toLowerCase().includes('send') ||
-                         btn.className?.toLowerCase().includes('submit') ||
-                         btn.textContent?.toLowerCase().includes('send') ||
-                         btn.getAttribute('data-testid')?.toLowerCase().includes('send');
-        if (isSendBtn) {
-          const text = lastTypedText.trim();
-          if (text) {
-            console.log("OMNIAI_PROMPT_SUBMIT:" + text);
-          }
-        }
-      }
+      const btn = e.target.closest && e.target.closest('button, [role="button"]');
+      if (!btn) return;
+      const hint = [
+        btn.getAttribute('aria-label'),
+        btn.getAttribute('data-testid'),
+        btn.getAttribute('title'),
+        btn.getAttribute('type') === 'submit' ? 'submit' : '',
+        typeof btn.className === 'string' ? btn.className : ''
+      ].join(' ').toLowerCase();
+      if (/send|submit/.test(hint)) report();
     }, true);
   })();
 `;
@@ -1380,9 +1457,15 @@ function addPromptToHistory(text, source) {
     });
   }
   
-  // Keep max 100 entries
-  if (currentState.promptsHistory.length > 100) {
-    currentState.promptsHistory.pop();
+  // Keep max 100 entries - evict the oldest *unpinned* prompt(s)
+  while (currentState.promptsHistory.length > 100) {
+    const history = currentState.promptsHistory;
+    let idx = -1;
+    for (let i = history.length - 1; i >= 0; i--) {
+      if (!history[i].pinned) { idx = i; break; }
+    }
+    if (idx === -1) break;
+    history.splice(idx, 1);
   }
   
   saveConfig();
@@ -1436,12 +1519,13 @@ function createHistoryItemElement(item) {
   const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' - ' + date.toLocaleDateString();
   
   // Find color from sitesConfig for badge, fallback to accent
-  const site = sitesConfig.find(s => s.name.toLowerCase() === item.source.toLowerCase());
-  const badgeColor = item.source === 'Broadcast' ? 'var(--accent-color)' : (site ? site.color : 'var(--text-dark)');
-  
+  const source = String(item.source || 'Unknown');
+  const site = sitesConfig.find(s => s.name.toLowerCase() === source.toLowerCase());
+  const badgeColor = source === 'Broadcast' ? 'var(--accent-color)' : (site ? safeColor(site.color) : 'var(--text-dark)');
+
   el.innerHTML = `
     <div class="history-item-header">
-      <span class="history-badge" style="background-color: ${badgeColor};">${item.source}</span>
+      <span class="history-badge" style="background-color: ${badgeColor};">${escapeHtml(source)}</span>
       <span class="history-time">${timeStr}</span>
     </div>
     <div class="history-item-body">${escapeHtml(item.text)}</div>
@@ -1477,7 +1561,7 @@ function createHistoryItemElement(item) {
   
   el.querySelector('.btn-copy').addEventListener('click', (e) => {
     e.stopPropagation();
-    navigator.clipboard.writeText(item.text);
+    navigator.clipboard.writeText(item.text).catch(err => console.error('Copy failed:', err));
     
     const copyBtn = el.querySelector('.btn-copy');
     copyBtn.innerHTML = `
@@ -1520,7 +1604,26 @@ function createHistoryItemElement(item) {
   return el;
 }
 
+// Parse JSON from storage without letting a corrupted value break startup
+function safeParseJSON(raw, fallback) {
+  if (raw === null || raw === undefined) return fallback;
+  try {
+    return JSON.parse(raw);
+  } catch (e) {
+    return fallback;
+  }
+}
+
+// Only allow plain CSS color values from sites.json into style attributes
+function safeColor(color) {
+  return /^(#[0-9a-f]{3,8}|[a-z]+|rgba?\([\d\s.,%]+\))$/i.test(String(color || '').trim())
+    ? String(color).trim()
+    : 'var(--text-muted)';
+}
+
 function escapeHtml(text) {
+  if (text === null || text === undefined) return '';
+  text = String(text);
   const map = {
     '&': '&amp;',
     '<': '&lt;',
@@ -1529,6 +1632,17 @@ function escapeHtml(text) {
     "'": '&#039;'
   };
   return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+}
+
+/* =================================================================
+   FEATURE: Workspace Monitor Widget card
+================================================================= */
+function initWorkspaceMonitorCard() {
+  const card = document.getElementById('card-workspace-monitor');
+  if (!card) return;
+  card.querySelector('.btn-focus')?.addEventListener('click', () => {
+    switchTab(currentState.activeTab === 'workspace-monitor' ? 'dashboard' : 'workspace-monitor');
+  });
 }
 
 /* =================================================================

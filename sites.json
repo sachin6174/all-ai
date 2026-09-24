@@ -1,14 +1,15 @@
 {
+  "configVersion": 3,
   "sites": [
     {
-      "id": "kimi",
-      "name": "Kimi",
-      "url": "https://www.kimi.com/",
-      "icon": "📖",
-      "color": "#06b6d4",
+      "id": "chatgpt",
+      "name": "ChatGPT",
+      "url": "https://chatgpt.com/",
+      "icon": "🌐",
+      "color": "#10a37f",
       "category": "ai",
       "enabled": true,
-      "trayLabel": "Kimi"
+      "trayLabel": "ChatGPT"
     },
     {
       "id": "gemini",
@@ -21,34 +22,14 @@
       "trayLabel": "Gemini"
     },
     {
-      "id": "chatgpt",
-      "name": "ChatGPT",
-      "url": "https://chatgpt.com/",
-      "icon": "🌐",
-      "color": "#10a37f",
+      "id": "deepseek",
+      "name": "DeepSeek",
+      "url": "https://chat.deepseek.com/",
+      "icon": "🔍",
+      "color": "#4f46e5",
       "category": "ai",
       "enabled": true,
-      "trayLabel": "ChatGPT"
-    },
-    {
-      "id": "zai",
-      "name": "Z AI",
-      "url": "https://chat.z.ai/",
-      "icon": "Z",
-      "color": "#ffffff",
-      "category": "ai",
-      "enabled": false,
-      "trayLabel": "Z AI"
-    },
-    {
-      "id": "claude",
-      "name": "Claude",
-      "url": "https://claude.ai/",
-      "icon": "⊕",
-      "color": "#d97706",
-      "category": "ai",
-      "enabled": true,
-      "trayLabel": "Claude"
+      "trayLabel": "DeepSeek"
     },
     {
       "id": "grok",
@@ -61,34 +42,14 @@
       "trayLabel": "Grok"
     },
     {
-      "id": "deepseek",
-      "name": "DeepSeek",
-      "url": "https://chat.deepseek.com/",
-      "icon": "🔍",
-      "color": "#4f46e5",
+      "id": "claude",
+      "name": "Claude",
+      "url": "https://claude.ai/",
+      "icon": "⊕",
+      "color": "#d97706",
       "category": "ai",
       "enabled": true,
-      "trayLabel": "DeepSeek"
-    },
-    {
-      "id": "qwen",
-      "name": "Qwen",
-      "url": "https://chat.qwenlm.ai/",
-      "icon": "Q",
-      "color": "#7c3aed",
-      "category": "ai",
-      "enabled": false,
-      "trayLabel": "Qwen"
-    },
-    {
-      "id": "copilot",
-      "name": "Copilot",
-      "url": "https://copilot.microsoft.com/",
-      "icon": "⊞",
-      "color": "#0078d4",
-      "category": "ai",
-      "enabled": false,
-      "trayLabel": "Copilot"
+      "trayLabel": "Claude"
     },
     {
       "id": "perplexity",
@@ -101,34 +62,24 @@
       "trayLabel": "Perplexity"
     },
     {
-      "id": "lechat",
-      "name": "Le Chat",
-      "url": "https://chat.mistral.ai/",
-      "icon": "💬",
-      "color": "#ff7000",
+      "id": "copilot",
+      "name": "Microsoft Copilot",
+      "url": "https://copilot.microsoft.com/",
+      "icon": "⊞",
+      "color": "#0078d4",
       "category": "ai",
       "enabled": false,
-      "trayLabel": "Le Chat"
+      "trayLabel": "Copilot"
     },
     {
-      "id": "pi",
-      "name": "Pi",
-      "url": "https://pi.ai/",
-      "icon": "π",
-      "color": "#a3e635",
+      "id": "doubao",
+      "name": "Doubao",
+      "url": "https://www.doubao.com/chat/",
+      "icon": "豆",
+      "color": "#4A90D9",
       "category": "ai",
       "enabled": false,
-      "trayLabel": "Pi"
-    },
-    {
-      "id": "poe",
-      "name": "Poe",
-      "url": "https://poe.com/",
-      "icon": "◉",
-      "color": "#6366f1",
-      "category": "ai",
-      "enabled": false,
-      "trayLabel": "Poe"
+      "trayLabel": "Doubao"
     },
     {
       "id": "characterai",
@@ -151,39 +102,129 @@
       "trayLabel": "Meta"
     },
     {
-      "id": "jasper",
-      "name": "Jasper Chat",
-      "url": "https://app.jasper.ai/",
-      "icon": "◆",
-      "color": "#f43f5e",
+      "id": "qwen",
+      "name": "Qwen Chat",
+      "url": "https://chat.qwen.ai/",
+      "icon": "Q",
+      "color": "#7c3aed",
       "category": "ai",
       "enabled": false,
-      "trayLabel": "Jasper"
+      "trayLabel": "Qwen"
     },
     {
-      "id": "phind",
-      "name": "Phind",
-      "url": "https://www.phind.com/",
-      "icon": "<>",
-      "color": "#8b5cf6",
+      "id": "kimi",
+      "name": "Kimi",
+      "url": "https://www.kimi.com/",
+      "icon": "📖",
+      "color": "#06b6d4",
       "category": "ai",
-      "enabled": false,
-      "trayLabel": "Phind"
+      "enabled": true,
+      "trayLabel": "Kimi"
     },
     {
-      "id": "huggingchat",
-      "name": "Hugging Chat",
-      "url": "https://huggingface.co/chat",
-      "icon": "🤗",
-      "color": "#fbbf24",
+      "id": "aistudio",
+      "name": "Google AI Studio",
+      "url": "https://aistudio.google.com/",
+      "icon": "🔬",
+      "color": "#4285f4",
       "category": "ai",
       "enabled": false,
-      "trayLabel": "Hugging"
+      "trayLabel": "AI Studio"
+    },
+    {
+      "id": "googleaimode",
+      "name": "Google AI Mode",
+      "url": "https://www.google.com/search?udm=50",
+      "icon": "G",
+      "color": "#34a853",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "AI Mode"
+    },
+    {
+      "id": "lechat",
+      "name": "Le Chat (Mistral)",
+      "url": "https://chat.mistral.ai/",
+      "icon": "💬",
+      "color": "#ff7000",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "Le Chat"
+    },
+    {
+      "id": "yuanbao",
+      "name": "Tencent Yuanbao",
+      "url": "https://yuanbao.tencent.com/",
+      "icon": "元",
+      "color": "#0052D9",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "Yuanbao"
+    },
+    {
+      "id": "manus",
+      "name": "Manus",
+      "url": "https://manus.im/app",
+      "icon": "✋",
+      "color": "#9ca3af",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "Manus"
+    },
+    {
+      "id": "poe",
+      "name": "Poe",
+      "url": "https://poe.com/",
+      "icon": "◉",
+      "color": "#6366f1",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "Poe"
+    },
+    {
+      "id": "zai",
+      "name": "Z.ai (GLM)",
+      "url": "https://chat.z.ai/",
+      "icon": "Z",
+      "color": "#e5e7eb",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "Z.ai"
+    },
+    {
+      "id": "janitorai",
+      "name": "Janitor AI",
+      "url": "https://janitorai.com/",
+      "icon": "👤",
+      "color": "#FF4757",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "Janitor"
+    },
+    {
+      "id": "notebooklm",
+      "name": "NotebookLM",
+      "url": "https://notebooklm.google.com/",
+      "icon": "📓",
+      "color": "#a142f4",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "NotebookLM"
+    },
+    {
+      "id": "genspark",
+      "name": "Genspark",
+      "url": "https://www.genspark.ai/",
+      "icon": "✳",
+      "color": "#2563eb",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "Genspark"
     },
     {
       "id": "duckchat",
-      "name": "Duck AI Chat",
-      "url": "https://duckduckgo.com/chat",
+      "name": "Duck.ai",
+      "url": "https://duck.ai/",
       "icon": "🦆",
       "color": "#de5833",
       "category": "ai",
@@ -191,14 +232,74 @@
       "trayLabel": "Duck"
     },
     {
-      "id": "groq",
-      "name": "Groq Chat",
-      "url": "https://chat.groq.com/",
-      "icon": "⚡",
-      "color": "#f97316",
+      "id": "lmarena",
+      "name": "LMArena",
+      "url": "https://lmarena.ai/",
+      "icon": "⚔",
+      "color": "#f59e0b",
       "category": "ai",
       "enabled": false,
-      "trayLabel": "Groq"
+      "trayLabel": "LMArena"
+    },
+    {
+      "id": "ernie",
+      "name": "ERNIE Bot (Yiyan)",
+      "url": "https://yiyan.baidu.com/",
+      "icon": "文",
+      "color": "#2932E1",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "Ernie"
+    },
+    {
+      "id": "githubcopilot",
+      "name": "GitHub Copilot",
+      "url": "https://github.com/copilot",
+      "icon": "🐙",
+      "color": "#8b949e",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "GH Copilot"
+    },
+    {
+      "id": "m365copilot",
+      "name": "Microsoft 365 Copilot",
+      "url": "https://m365.cloud.microsoft/chat",
+      "icon": "Ⓜ",
+      "color": "#7b83eb",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "M365"
+    },
+    {
+      "id": "huggingchat",
+      "name": "HuggingChat",
+      "url": "https://huggingface.co/chat/",
+      "icon": "🤗",
+      "color": "#fbbf24",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "Hugging"
+    },
+    {
+      "id": "monica",
+      "name": "Monica",
+      "url": "https://monica.im/",
+      "icon": "◐",
+      "color": "#6d5dfc",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "Monica"
+    },
+    {
+      "id": "youcom",
+      "name": "You.com",
+      "url": "https://you.com/",
+      "icon": "Y",
+      "color": "#6C5CE7",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "You.com"
     },
     {
       "id": "blackbox",
@@ -211,34 +312,14 @@
       "trayLabel": "B.Box"
     },
     {
-      "id": "cohere",
-      "name": "Cohere Coral",
-      "url": "https://coral.cohere.com/",
-      "icon": "◇",
-      "color": "#39d353",
+      "id": "deepai",
+      "name": "DeepAI Chat",
+      "url": "https://deepai.org/chat",
+      "icon": "◍",
+      "color": "#22c55e",
       "category": "ai",
       "enabled": false,
-      "trayLabel": "Cohere"
-    },
-    {
-      "id": "openrouter",
-      "name": "OpenRouter Chat",
-      "url": "https://openrouter.ai/chat",
-      "icon": "⊙",
-      "color": "#6d28d9",
-      "category": "ai",
-      "enabled": false,
-      "trayLabel": "O.Router"
-    },
-    {
-      "id": "you",
-      "name": "You.com",
-      "url": "https://you.com/chat",
-      "icon": "Y",
-      "color": "#6C5CE7",
-      "category": "ai",
-      "enabled": false,
-      "trayLabel": "You.com"
+      "trayLabel": "DeepAI"
     },
     {
       "id": "venice",
@@ -251,6 +332,286 @@
       "trayLabel": "Venice"
     },
     {
+      "id": "chatglm",
+      "name": "ChatGLM (Qingyan)",
+      "url": "https://chatglm.cn/",
+      "icon": "智",
+      "color": "#4E6EF2",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "GLM"
+    },
+    {
+      "id": "minimax",
+      "name": "MiniMax Chat",
+      "url": "https://chat.minimax.io/",
+      "icon": "Ⅿ",
+      "color": "#f23f5d",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "MiniMax"
+    },
+    {
+      "id": "tongyi",
+      "name": "Tongyi Qianwen",
+      "url": "https://www.tongyi.com/",
+      "icon": "通",
+      "color": "#615ced",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "Tongyi"
+    },
+    {
+      "id": "metaso",
+      "name": "Metaso",
+      "url": "https://metaso.cn/",
+      "icon": "秘",
+      "color": "#3b82f6",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "Metaso"
+    },
+    {
+      "id": "merlin",
+      "name": "Merlin AI",
+      "url": "https://www.getmerlin.in/chat",
+      "icon": "🧙",
+      "color": "#9B59B6",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "Merlin"
+    },
+    {
+      "id": "pi",
+      "name": "Pi",
+      "url": "https://pi.ai/",
+      "icon": "π",
+      "color": "#a3e635",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "Pi"
+    },
+    {
+      "id": "v0",
+      "name": "v0 by Vercel",
+      "url": "https://v0.app/",
+      "icon": "▲",
+      "color": "#e5e7eb",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "v0"
+    },
+    {
+      "id": "lovable",
+      "name": "Lovable",
+      "url": "https://lovable.dev/",
+      "icon": "♥",
+      "color": "#ff5e8a",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "Lovable"
+    },
+    {
+      "id": "bolt",
+      "name": "Bolt.new",
+      "url": "https://bolt.new/",
+      "icon": "ϟ",
+      "color": "#3b82f6",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "Bolt"
+    },
+    {
+      "id": "t3chat",
+      "name": "T3 Chat",
+      "url": "https://t3.chat/",
+      "icon": "T3",
+      "color": "#c026d3",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "T3"
+    },
+    {
+      "id": "openrouter",
+      "name": "OpenRouter Chat",
+      "url": "https://openrouter.ai/chat",
+      "icon": "⊙",
+      "color": "#6d28d9",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "O.Router"
+    },
+    {
+      "id": "groq",
+      "name": "Groq Chat",
+      "url": "https://chat.groq.com/",
+      "icon": "⚙",
+      "color": "#f97316",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "Groq"
+    },
+    {
+      "id": "cerebras",
+      "name": "Cerebras Inference",
+      "url": "https://inference.cerebras.ai/",
+      "icon": "◎",
+      "color": "#f15a29",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "Cerebras"
+    },
+    {
+      "id": "lambdachat",
+      "name": "Lambda Chat",
+      "url": "https://lambda.chat/",
+      "icon": "λ",
+      "color": "#7c3aed",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "Lambda"
+    },
+    {
+      "id": "kagi",
+      "name": "Kagi Assistant",
+      "url": "https://kagi.com/assistant",
+      "icon": "K",
+      "color": "#ffb319",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "Kagi"
+    },
+    {
+      "id": "braveask",
+      "name": "Brave Search Ask",
+      "url": "https://search.brave.com/ask",
+      "icon": "🦁",
+      "color": "#fb542b",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "Brave"
+    },
+    {
+      "id": "phind",
+      "name": "Phind",
+      "url": "https://www.phind.com/",
+      "icon": "<>",
+      "color": "#8b5cf6",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "Phind"
+    },
+    {
+      "id": "felo",
+      "name": "Felo",
+      "url": "https://felo.ai/",
+      "icon": "F",
+      "color": "#4f7cff",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "Felo"
+    },
+    {
+      "id": "liner",
+      "name": "Liner",
+      "url": "https://getliner.com/",
+      "icon": "L",
+      "color": "#00c077",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "Liner"
+    },
+    {
+      "id": "consensus",
+      "name": "Consensus",
+      "url": "https://consensus.app/",
+      "icon": "✓",
+      "color": "#10B981",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "Consensus"
+    },
+    {
+      "id": "elicit",
+      "name": "Elicit",
+      "url": "https://elicit.com/",
+      "icon": "📊",
+      "color": "#6366F1",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "Elicit"
+    },
+    {
+      "id": "scispace",
+      "name": "SciSpace",
+      "url": "https://scispace.com/",
+      "icon": "🧪",
+      "color": "#ff6b35",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "SciSpace"
+    },
+    {
+      "id": "julius",
+      "name": "Julius AI",
+      "url": "https://julius.ai/",
+      "icon": "∫",
+      "color": "#5b8def",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "Julius"
+    },
+    {
+      "id": "skywork",
+      "name": "Skywork",
+      "url": "https://skywork.ai/",
+      "icon": "☁",
+      "color": "#38bdf8",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "Skywork"
+    },
+    {
+      "id": "spark",
+      "name": "iFlytek Spark",
+      "url": "https://xinghuo.xfyun.cn/",
+      "icon": "星",
+      "color": "#1f6fff",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "Spark"
+    },
+    {
+      "id": "yuewen",
+      "name": "StepFun Yuewen",
+      "url": "https://yuewen.cn/",
+      "icon": "跃",
+      "color": "#0ea5e9",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "Yuewen"
+    },
+    {
+      "id": "nanoai",
+      "name": "360 Nano AI",
+      "url": "https://www.n.cn/",
+      "icon": "纳",
+      "color": "#16a34a",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "Nano AI"
+    },
+    {
+      "id": "amazonnova",
+      "name": "Amazon Nova",
+      "url": "https://nova.amazon.com/",
+      "icon": "◆",
+      "color": "#ff9900",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "Nova"
+    },
+    {
       "id": "reka",
       "name": "Reka Chat",
       "url": "https://chat.reka.ai/",
@@ -261,44 +622,54 @@
       "trayLabel": "Reka"
     },
     {
-      "id": "doubao",
-      "name": "Doubao",
-      "url": "https://www.doubao.com/",
-      "icon": "豆",
-      "color": "#4A90D9",
+      "id": "cohere",
+      "name": "Cohere Playground",
+      "url": "https://dashboard.cohere.com/playground/chat",
+      "icon": "◇",
+      "color": "#39d353",
       "category": "ai",
       "enabled": false,
-      "trayLabel": "Doubao"
+      "trayLabel": "Cohere"
     },
     {
-      "id": "ernie",
-      "name": "Ernie Bot",
-      "url": "https://yiyan.baidu.com/",
-      "icon": "文",
-      "color": "#2932E1",
+      "id": "jasper",
+      "name": "Jasper Chat",
+      "url": "https://app.jasper.ai/",
+      "icon": "❖",
+      "color": "#f43f5e",
       "category": "ai",
       "enabled": false,
-      "trayLabel": "Ernie"
+      "trayLabel": "Jasper"
     },
     {
-      "id": "chatglm",
-      "name": "ChatGLM",
-      "url": "https://chatglm.cn/",
-      "icon": "智",
-      "color": "#4E6EF2",
+      "id": "novelai",
+      "name": "NovelAI",
+      "url": "https://novelai.net/",
+      "icon": "✍",
+      "color": "#7C4DFF",
       "category": "ai",
       "enabled": false,
-      "trayLabel": "GLM"
+      "trayLabel": "NovelAI"
     },
     {
-      "id": "yuanbao",
-      "name": "Tencent Yuanbao",
-      "url": "https://yuanbao.tencent.com/",
-      "icon": "元",
-      "color": "#0052D9",
+      "id": "aidungeon",
+      "name": "AI Dungeon",
+      "url": "https://play.aidungeon.com/",
+      "icon": "🐉",
+      "color": "#b45309",
       "category": "ai",
       "enabled": false,
-      "trayLabel": "Yuanbao"
+      "trayLabel": "AI Dungeon"
+    },
+    {
+      "id": "replika",
+      "name": "Replika",
+      "url": "https://my.replika.com/",
+      "icon": "💙",
+      "color": "#00BFA5",
+      "category": "ai",
+      "enabled": false,
+      "trayLabel": "Replika"
     },
     {
       "id": "andi",
@@ -314,101 +685,21 @@
       "id": "komo",
       "name": "Komo AI",
       "url": "https://komo.ai/",
-      "icon": "K",
+      "icon": "⌘",
       "color": "#7B61FF",
       "category": "ai",
       "enabled": false,
       "trayLabel": "Komo"
     },
     {
-      "id": "janitorai",
-      "name": "Janitor AI",
-      "url": "https://janitorai.com/",
-      "icon": "👤",
-      "color": "#FF4757",
+      "id": "openwebui",
+      "name": "Open WebUI (Local)",
+      "url": "http://localhost:3000/",
+      "icon": "🖥",
+      "color": "#94a3b8",
       "category": "ai",
       "enabled": false,
-      "trayLabel": "Janitor"
-    },
-    {
-      "id": "novelai",
-      "name": "NovelAI",
-      "url": "https://novelai.net/",
-      "icon": "✍",
-      "color": "#7C4DFF",
-      "category": "ai",
-      "enabled": false,
-      "trayLabel": "NovelAI"
-    },
-    {
-      "id": "replika",
-      "name": "Replika",
-      "url": "https://replika.com/",
-      "icon": "💙",
-      "color": "#00BFA5",
-      "category": "ai",
-      "enabled": false,
-      "trayLabel": "Replika"
-    },
-    {
-      "id": "aistudio",
-      "name": "Google AI Studio",
-      "url": "https://aistudio.google.com/",
-      "icon": "🔬",
-      "color": "#4285f4",
-      "category": "ai",
-      "enabled": false,
-      "trayLabel": "AI Studio"
-    },
-    {
-      "id": "githubcopilot",
-      "name": "GitHub Copilot",
-      "url": "https://github.com/copilot",
-      "icon": "🐙",
-      "color": "#24292F",
-      "category": "ai",
-      "enabled": false,
-      "trayLabel": "GH Copilot"
-    },
-    {
-      "id": "aidungeon",
-      "name": "AI Dungeon",
-      "url": "https://play.aidungeon.com/",
-      "icon": "🐉",
-      "color": "#8B4513",
-      "category": "ai",
-      "enabled": false,
-      "trayLabel": "AI Dungeon"
-    },
-    {
-      "id": "elicit",
-      "name": "Elicit",
-      "url": "https://elicit.com/",
-      "icon": "📊",
-      "color": "#6366F1",
-      "category": "ai",
-      "enabled": false,
-      "trayLabel": "Elicit"
-    },
-    {
-      "id": "consensus",
-      "name": "Consensus",
-      "url": "https://consensus.app/",
-      "icon": "✓",
-      "color": "#10B981",
-      "category": "ai",
-      "enabled": false,
-      "trayLabel": "Consensus"
-    },
-    {
-      "id": "merlin",
-      "name": "Merlin AI",
-      "url": "https://www.getmerlin.in/chat",
-      "icon": "🧙",
-      "color": "#9B59B6",
-      "category": "ai",
-      "enabled": false,
-      "trayLabel": "Merlin"
+      "trayLabel": "OpenWebUI"
     },
     {
       "id": "google",

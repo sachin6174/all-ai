@@ -25,6 +25,23 @@ if (!gotSingleInstanceLock) {
   });
 }
 
+// Hosts whose popups are sign-in flows and must stay in-app (sharing the
+// session partition) instead of being sent to the external browser.
+const AUTH_HOSTS = [
+  'google.com', 'login.microsoftonline.com', 'login.live.com', 'login.microsoft.com',
+  'appleid.apple.com', 'auth.openai.com', 'auth0.com', 'clerk.accounts.dev'
+];
+
+function isAuthPopupUrl(url) {
+  try {
+    const { hostname, pathname, search } = new URL(url);
+    if (AUTH_HOSTS.some(h => hostname === h || hostname.endsWith('.' + h))) return true;
+    return /oauth|signin|sign-in|login|auth|sso/i.test(pathname + search);
+  } catch (e) {
+    return false;
+  }
+}
+
 function configureSessions() {
   const ses = session.fromPartition(SHARED_PARTITION);
   
@@ -119,7 +136,7 @@ function createWindow() {
   // indefinitely - show it anyway after a short timeout.
   setTimeout(showWindowOnce, 3000);
 
-  mainWindow.loadFile('index.html');
+  mainWindow.loadFile(path.join(__dirname, 'index.html'));
 
   // (Removed mainWindow.webContents.setWindowOpenHandler since we'll handle it globally)
 
@@ -224,7 +241,6 @@ app.whenReady().then(() => {
   }
   setAppMenu();
   configureSessions();
-  createWindow();
 
   // Enforce custom user agent on ANY new window/webContents created (including allowpopups from webviews)
   app.on('web-contents-created', (event, contents) => {
@@ -240,7 +256,8 @@ app.whenReady().then(() => {
     contents.on('dom-ready', () => {
       try {
         const url = contents.getURL();
-        if (url && (url.includes('google.com') || url.includes('googleapis.com') || url.includes('gstatic.com'))) {
+        const host = url ? new URL(url).hostname : '';
+        if (/(^|\.)(google\.com|googleapis\.com|gstatic\.com)$/.test(host)) {
           contents.executeJavaScript(`
             try {
               // Firefox does not have window.chrome — remove it to match our Firefox UA
@@ -257,8 +274,8 @@ app.whenReady().then(() => {
 
     // Globally handle ANY popup (window.open) triggered by ANY webContents (including webviews)
     contents.setWindowOpenHandler(({ url }) => {
-      // Allow Google login popups to open as secure, stripped-down BrowserWindows
-      if (url.includes('accounts.google.com') || url.includes('oauth') || url.includes('signin') || url.includes('google.com')) {
+      // Allow SSO / login popups to open as secure, stripped-down BrowserWindows
+      if (isAuthPopupUrl(url)) {
         return {
           action: 'allow',
           overrideBrowserWindowOptions: {
@@ -274,10 +291,12 @@ app.whenReady().then(() => {
       }
       
       // All other external links (not auth) go to default OS browser
-      shell.openExternal(url);
+      if (/^(https?|mailto):/i.test(url)) shell.openExternal(url);
       return { action: 'deny' };
     });
   });
+
+  createWindow();
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -333,38 +352,50 @@ ipcMain.handle('get-always-on-top', async () => {
 const BUNDLED_SITES_PATH = path.join(__dirname, 'sites.json');
 const USER_SITES_PATH = path.join(app.getPath('userData'), 'sites.json');
 
-// Copy bundled sites.json to userData on first run or sync site updates
+// Copy bundled sites.json to userData on first run, and merge bundled updates
+// (new portals, URL changes, popularity ordering) whenever the bundled
+// `configVersion` is newer than the user's copy. User-added custom sites and
+// their per-site `enabled` flags are preserved.
+let userSitesSynced = false;
 function ensureUserSitesConfig() {
+  if (userSitesSynced) return;
+  userSitesSynced = true;
   const fs = require('fs');
   if (!fs.existsSync(USER_SITES_PATH)) {
     try {
       fs.copyFileSync(BUNDLED_SITES_PATH, USER_SITES_PATH);
-      console.log('Copied bundled sites.json to userData');
     } catch (e) {
       console.error('Failed to copy sites.json to userData:', e);
     }
-  } else {
-    try {
-      const bundledData = JSON.parse(fs.readFileSync(BUNDLED_SITES_PATH, 'utf8'));
-      const userData = JSON.parse(fs.readFileSync(USER_SITES_PATH, 'utf8'));
-      if (bundledData.sites && userData.sites) {
-        const bundledKimi = bundledData.sites.find(s => s.id === 'kimi');
-        if (bundledKimi) {
-          const userKimiIdx = userData.sites.findIndex(s => s.id === 'kimi');
-          if (userKimiIdx !== -1) {
-            userData.sites[userKimiIdx].url = bundledKimi.url;
-            userData.sites[userKimiIdx].enabled = true;
-            const [kimiSite] = userData.sites.splice(userKimiIdx, 1);
-            userData.sites.unshift(kimiSite);
-          } else {
-            userData.sites.unshift(bundledKimi);
-          }
-          fs.writeFileSync(USER_SITES_PATH, JSON.stringify(userData, null, 2), 'utf8');
-        }
-      }
-    } catch (e) {
-      console.error('Error updating user sites config:', e);
-    }
+    return;
+  }
+  try {
+    const bundledData = JSON.parse(fs.readFileSync(BUNDLED_SITES_PATH, 'utf8'));
+    const userData = JSON.parse(fs.readFileSync(USER_SITES_PATH, 'utf8'));
+    if (!Array.isArray(bundledData.sites) || !Array.isArray(userData.sites)) return;
+    if ((userData.configVersion || 0) >= (bundledData.configVersion || 0)) return;
+
+    // Legacy ids renamed in newer bundles
+    const RENAMED_IDS = { you: 'youcom' };
+    const userById = new Map();
+    userData.sites.forEach(site => {
+      const id = RENAMED_IDS[site.id] || site.id;
+      userById.set(id, { ...site, id });
+    });
+
+    // Bundled sites come first, in bundled (popularity) order
+    const merged = bundledData.sites.map(bundled => {
+      const existing = userById.get(bundled.id);
+      userById.delete(bundled.id);
+      return existing ? { ...bundled, enabled: existing.enabled } : bundled;
+    });
+    // Then any custom sites the user added themselves
+    userById.forEach(site => merged.push(site));
+
+    const output = { ...userData, configVersion: bundledData.configVersion, sites: merged };
+    fs.writeFileSync(USER_SITES_PATH, JSON.stringify(output, null, 2), 'utf8');
+  } catch (e) {
+    console.error('Error updating user sites config:', e);
   }
 }
 
@@ -415,6 +446,14 @@ ipcMain.handle('write-sites-config', async (event, jsonString) => {
       }
       if (!['ai', 'utility'].includes(site.category)) {
         return { success: false, error: `Site "${site.id}" has invalid category (must be "ai" or "utility")` };
+      }
+    }
+    // Keep the config version so the next launch doesn't re-merge bundled sites
+    if (parsed.configVersion === undefined) {
+      try {
+        parsed.configVersion = JSON.parse(fs.readFileSync(BUNDLED_SITES_PATH, 'utf8')).configVersion || 0;
+      } catch (e) {
+        parsed.configVersion = 0;
       }
     }
     // Write to disk
